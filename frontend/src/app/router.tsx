@@ -1,1 +1,28 @@
-import {createBrowserRouter} from 'react-router-dom';import {AppLayout} from './layouts/AppLayout';import {HomePage} from '../pages/HomePage';import {CollectionPage} from '../pages/CollectionPage';import {MonsterDetailPage} from '../pages/MonsterDetailPage';import {TeamPage} from '../pages/TeamPage';import {EncounterListPage} from '../pages/EncounterListPage';import {HistoryPage} from '../pages/HistoryPage';import {LoginPage} from '../pages/LoginPage';import {RegisterPage} from '../pages/RegisterPage';import {NotFoundPage} from '../pages/NotFoundPage';export const router=createBrowserRouter([{path:'/login',element:<LoginPage/>},{path:'/register',element:<RegisterPage/>},{path:'/',element:<AppLayout/>,children:[{index:true,element:<HomePage/>},{path:'collection',element:<CollectionPage/>},{path:'collection/:monsterId',element:<MonsterDetailPage/>},{path:'team',element:<TeamPage/>},{path:'encounters',element:<EncounterListPage/>},{path:'history',element:<HistoryPage/>}]},{path:'*',element:<NotFoundPage/>}]);
+import { createBrowserRouter } from "react-router-dom";
+import { AppLayout } from "./layouts/AppLayout";
+import { HomePage } from "../pages/HomePage";
+import { CollectionPage } from "../pages/CollectionPage";
+import { MonsterDetailPage } from "../pages/MonsterDetailPage";
+import { TeamPage } from "../pages/TeamPage";
+import { EncounterListPage } from "../pages/EncounterListPage";
+import { HistoryPage } from "../pages/HistoryPage";
+import { LoginPage } from "../pages/LoginPage";
+import { RegisterPage } from "../pages/RegisterPage";
+import { NotFoundPage } from "../pages/NotFoundPage";
+export const router = createBrowserRouter([
+  { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
+  {
+    path: "/",
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "collection", element: <CollectionPage /> },
+      { path: "collection/:monsterId", element: <MonsterDetailPage /> },
+      { path: "team", element: <TeamPage /> },
+      { path: "encounters", element: <EncounterListPage /> },
+      { path: "history", element: <HistoryPage /> },
+    ],
+  },
+  { path: "*", element: <NotFoundPage /> },
+]);

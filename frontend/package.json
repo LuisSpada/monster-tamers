@@ -29,6 +29,7 @@
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
     "jsdom": "latest",
+    "prettier": "^3.9.10",
     "typescript": "latest",
     "typescript-eslint": "latest",
     "vite": "8.3.4",

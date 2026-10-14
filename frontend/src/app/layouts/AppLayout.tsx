@@ -1,1 +1,35 @@
-import {NavLink,Outlet} from 'react-router-dom';const links=[['/','Home'],['/collection','Collection'],['/team','Team'],['/encounters','Encounters'],['/history','History']];export function AppLayout(){return <div className="min-h-screen bg-slate-950 text-slate-100"><header className="border-b border-cyan-900 bg-slate-900"><nav className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4"><span className="mr-auto text-xl font-bold text-cyan-300">Monster Tamers</span>{links.map(([to,label])=><NavLink key={to} to={to} className={({isActive})=>isActive?'text-cyan-300':'text-slate-300'}>{label}</NavLink>)}</nav></header><main className="mx-auto max-w-6xl px-6 py-10"><Outlet/></main></div>}
+import { NavLink, Outlet } from "react-router-dom";
+const links = [
+  ["/", "Home"],
+  ["/collection", "Collection"],
+  ["/team", "Team"],
+  ["/encounters", "Encounters"],
+  ["/history", "History"],
+];
+export function AppLayout() {
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <header className="border-b border-cyan-900 bg-slate-900">
+        <nav className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
+          <span className="mr-auto text-xl font-bold text-cyan-300">
+            Monster Tamers
+          </span>
+          {links.map(([to, label]) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                isActive ? "text-cyan-300" : "text-slate-300"
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <Outlet />
+      </main>
+    </div>
+  );
+}

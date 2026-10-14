@@ -1,1 +1,15 @@
-import {PageHeader} from '../components/common/PageHeader';import {PlaceholderCard} from '../components/common/PlaceholderCard';export function EncounterListPage(){return <><PageHeader title="Encounters" description="Preview challenges, opponents and possible rewards."/><PlaceholderCard>This feature will be implemented in its own pull request.</PlaceholderCard></>}
+import { PageHeader } from "../components/common/PageHeader";
+import { PlaceholderCard } from "../components/common/PlaceholderCard";
+export function EncounterListPage() {
+  return (
+    <>
+      <PageHeader
+        title="Encounters"
+        description="Preview challenges, opponents and possible rewards."
+      />
+      <PlaceholderCard>
+        This feature will be implemented in its own pull request.
+      </PlaceholderCard>
+    </>
+  );
+}
