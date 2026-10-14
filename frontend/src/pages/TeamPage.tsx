@@ -1,0 +1,15 @@
+import { PageHeader } from "../components/common/PageHeader";
+import { PlaceholderCard } from "../components/common/PlaceholderCard";
+export function TeamPage() {
+  return (
+    <>
+      <PageHeader
+        title="Team builder"
+        description="Create an active team of one to three monsters."
+      />
+      <PlaceholderCard>
+        This feature will be implemented in its own pull request.
+      </PlaceholderCard>
+    </>
+  );
+}

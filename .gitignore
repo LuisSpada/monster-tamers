@@ -73,3 +73,11 @@ Icon?
 # Database local files and dumps
 *.dump
 *.sql.gz
+
+
+# TypeScript build information
+*.tsbuildinfo
+
+# Generated Vite configuration output
+vite.config.js
+vite.config.d.ts

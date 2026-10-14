@@ -1,0 +1,1 @@
+package com.monstertamers.shared.api;import java.util.Map;import org.springframework.web.bind.annotation.*;@RestController @RequestMapping("/api") public class ApiInfoController{@GetMapping Map<String,String>info(){return Map.of("application","Monster Tamers Backend","status","starting-point");}}

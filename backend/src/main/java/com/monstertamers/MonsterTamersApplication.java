@@ -1,0 +1,1 @@
+package com.monstertamers;import org.springframework.boot.SpringApplication;import org.springframework.boot.autoconfigure.SpringBootApplication;@SpringBootApplication public class MonsterTamersApplication{public static void main(String[]args){SpringApplication.run(MonsterTamersApplication.class,args);}}
