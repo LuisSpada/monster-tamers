@@ -1,0 +1,7 @@
+target/
+.mvn/wrapper/apache-maven/
+.env
+.env.*
+!.env.example
+.idea/
+*.iml

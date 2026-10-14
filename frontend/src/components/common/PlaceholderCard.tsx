@@ -1,0 +1,1 @@
+import type {ReactNode} from 'react';export function PlaceholderCard({children}:{children:ReactNode}){return <section className="rounded-2xl border border-slate-700 bg-slate-900 p-6 text-slate-300">{children}</section>}

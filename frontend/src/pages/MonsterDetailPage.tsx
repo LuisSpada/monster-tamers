@@ -1,0 +1,1 @@
+import {PageHeader} from '../components/common/PageHeader';import {PlaceholderCard} from '../components/common/PlaceholderCard';export function MonsterDetailPage(){return <><PageHeader title="Monster details" description="Inspect stats, skill, trait, Talent and progression."/><PlaceholderCard>This feature will be implemented in its own pull request.</PlaceholderCard></>}

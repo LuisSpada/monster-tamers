@@ -1,0 +1,1 @@
+import {Link} from 'react-router-dom';export function RegisterPage(){return <main className="grid min-h-screen place-items-center bg-slate-950 text-white"><div><h1 className="text-3xl font-bold">Create account</h1><p>Registration will be implemented later.</p><Link className="text-cyan-300" to="/login">Back to login</Link></div></main>}
