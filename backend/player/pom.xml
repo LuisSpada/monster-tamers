@@ -21,9 +21,5 @@
             <groupId>com.monstertamers</groupId>
             <artifactId>auth</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.monstertamers</groupId>
-            <artifactId>encounter</artifactId>
-        </dependency>
     </dependencies>
 </project>

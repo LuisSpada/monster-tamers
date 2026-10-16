@@ -23,6 +23,10 @@
         </dependency>
         <dependency>
             <groupId>com.monstertamers</groupId>
+            <artifactId>player</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.monstertamers</groupId>
             <artifactId>simulator</artifactId>
         </dependency>
     </dependencies>

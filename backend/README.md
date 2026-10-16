@@ -16,9 +16,9 @@ Runtime uses PostgreSQL. The test profile uses H2 only for initial context tests
 | Module | Owns | May use |
 |---|---|---|
 | `auth` | accounts, login, tokens | `shared` |
-| `player` | profile, stats, final-boss progress | `auth`, `encounter`, `shared` |
+| `player` | profile, stats, final-boss progress | `auth`, `shared` |
 | `monster` | catalogue, owned monsters, generation, progression, team | `auth`, `shared` |
-| `encounter` | encounters, unlocks, rewards, history | `monster`, `simulator`, `shared` |
+| `encounter` | encounters, unlocks, rewards, history | `monster`, `player`, `simulator`, `shared` |
 | `simulator` | pure deterministic battle engine, no database | — |
 | `shared` | technical helpers, no game logic | — |
 | `app` | Spring Boot entry point, configuration, tests across modules | all |
