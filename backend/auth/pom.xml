@@ -17,13 +17,5 @@
             <groupId>com.monstertamers</groupId>
             <artifactId>shared</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.monstertamers</groupId>
-            <artifactId>player</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.monstertamers</groupId>
-            <artifactId>monster</artifactId>
-        </dependency>
     </dependencies>
 </project>

@@ -15,7 +15,7 @@ Runtime uses PostgreSQL. The test profile uses H2 only for initial context tests
 
 | Module | Owns | May use |
 |---|---|---|
-| `auth` | accounts, login, tokens | `player`, `monster`, `shared` |
+| `auth` | accounts, login, tokens | `shared` |
 | `player` | profile, stats, final-boss progress | `encounter`, `shared` |
 | `monster` | catalogue, owned monsters, generation, progression, team | `shared` |
 | `encounter` | encounters, unlocks, rewards, history | `monster`, `simulator`, `shared` |
