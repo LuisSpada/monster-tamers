@@ -17,5 +17,9 @@
             <groupId>com.monstertamers</groupId>
             <artifactId>shared</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.monstertamers</groupId>
+            <artifactId>auth</artifactId>
+        </dependency>
     </dependencies>
 </project>
