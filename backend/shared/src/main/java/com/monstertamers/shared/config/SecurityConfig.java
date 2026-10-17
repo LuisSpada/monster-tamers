@@ -1,5 +1,6 @@
 package com.monstertamers.shared.config;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,9 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // An exception thrown in a filter, before controllers, is forwarded to /error.
+                        // Without this, Security blocks that forward and the 500 shows up as 401/403.
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api", "/actuator/health").permitAll()
                         .anyRequest().denyAll())
                 .build();
