@@ -3,11 +3,12 @@ package com.monstertamers.shared.error;
 import org.springframework.http.HttpStatus;
 
 /**
- * Errors not tied to any game module: authentication, unexpected failures.
+ * Errors not tied to any game module: validation, authentication, unexpected failures.
  * Spring's own errors (404, 405, malformed JSON, ...) get {@code common.<http_status>}, e.g. {@code common.not_found}.
  */
 public enum CommonErrorCode implements ErrorCode {
 
+    VALIDATION_FAILED("common.validation_failed", HttpStatus.BAD_REQUEST, "Request has invalid fields"),
     UNAUTHORIZED("common.unauthorized", HttpStatus.UNAUTHORIZED, "Authentication is required"),
     FORBIDDEN("common.forbidden", HttpStatus.FORBIDDEN, "Access denied"),
     INTERNAL_SERVER_ERROR("common.internal_server_error", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error");

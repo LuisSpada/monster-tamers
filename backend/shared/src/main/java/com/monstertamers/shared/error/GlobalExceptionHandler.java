@@ -1,10 +1,14 @@
 package com.monstertamers.shared.error;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -12,10 +16,14 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.method.ParameterValidationResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.util.WebUtils;
 
@@ -47,6 +55,39 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetailFactory.create(CommonErrorCode.INTERNAL_SERVER_ERROR);
     }
 
+    /** {@code @Valid @RequestBody} failed. */
+    @Override
+    protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        List<FieldViolation> violations = new ArrayList<>();
+        ex.getFieldErrors().forEach(error -> violations.add(FieldViolation.of(error.getField(), error)));
+        ex.getGlobalErrors().forEach(error -> violations.add(FieldViolation.of(error.getObjectName(), error)));
+        return handleExceptionInternal(ex, validationProblem(violations), headers, status, request);
+    }
+
+    /** Constraints on {@code @RequestParam}, {@code @PathVariable} and similar parameters failed. */
+    @Override
+    protected @Nullable ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        List<FieldViolation> violations = new ArrayList<>();
+        for (ParameterValidationResult result : ex.getParameterValidationResults()) {
+            String parameter = parameterName(result.getMethodParameter());
+            for (MessageSourceResolvable error : result.getResolvableErrors()) {
+                String field = error instanceof FieldError fieldError ? fieldError.getField() : parameter;
+                violations.add(FieldViolation.of(field, error));
+            }
+        }
+        return handleExceptionInternal(ex, validationProblem(violations), headers, status, request);
+    }
+
     @Override
     protected @Nullable ResponseEntity<Object> handleExceptionInternal(
             Exception ex,
@@ -62,6 +103,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
+    private static ProblemDetail validationProblem(List<FieldViolation> violations) {
+        ProblemDetail problem = ProblemDetailFactory.create(CommonErrorCode.VALIDATION_FAILED);
+        problem.setProperty("errors", violations);
+        return problem;
+    }
+
     /** Spring builds its own errors (404, 405, malformed JSON) without our code; adds {@code common.<status>}. */
     private static void addCodeIfMissing(ProblemDetail problem) {
         Map<String, Object> properties = problem.getProperties();
@@ -70,5 +117,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         }
         String status = HttpStatus.valueOf(problem.getStatus()).name().toLowerCase(Locale.ROOT);
         problem.setProperty("code", "common." + status);
+    }
+
+    private static String parameterName(MethodParameter parameter) {
+        String name = parameter.getParameterName();
+        return name != null ? name : "arg" + parameter.getParameterIndex();
     }
 }
