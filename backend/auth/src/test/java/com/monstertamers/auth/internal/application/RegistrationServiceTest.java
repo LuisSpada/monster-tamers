@@ -12,9 +12,11 @@ import com.monstertamers.auth.internal.application.mail.MailService;
 import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository;
+import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
 import com.monstertamers.shared.error.ApiException;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -107,6 +109,27 @@ class RegistrationServiceTest {
             assertThat(attempt.getPassword()).isEqualTo("password-hash");
             assertThat(attempt.getCode()).isEqualTo("code-hash");
             verify(mailService).sendConfirmationCode(EMAIL, saved.getId(), "123456");
+        }
+    }
+
+    @Nested
+    class Confirm {
+
+        @Test
+        void unknownRegistration_rejected() {
+            // given
+            UUID registrationId = UUID.randomUUID();
+            ConfirmationRequest request = new ConfirmationRequest("123456");
+            when(registrationAttemptRepository.findById(registrationId)).thenReturn(Optional.empty());
+
+            // when
+            Throwable thrown = catchThrowable(() -> registrationService.confirm(registrationId, request));
+
+            // then
+            assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+                assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.confirmation_code_invalid");
+            });
         }
     }
 }

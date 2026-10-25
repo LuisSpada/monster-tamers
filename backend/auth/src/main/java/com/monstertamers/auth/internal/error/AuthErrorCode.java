@@ -11,7 +11,12 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum AuthErrorCode implements ErrorCode {
 
-    EMAIL_TAKEN("auth.email_taken", HttpStatus.CONFLICT, "Email is already registered");
+    EMAIL_TAKEN("auth.email_taken", HttpStatus.CONFLICT, "Email is already registered"),
+    CONFIRMATION_CODE_INVALID(
+            "auth.confirmation_code_invalid",
+            HttpStatus.BAD_REQUEST,
+            "Confirmation code is invalid"
+    );
 
     private final String code;
     private final HttpStatus status;
