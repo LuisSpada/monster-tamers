@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.monstertamers.auth.api.AccountCreated;
 import com.monstertamers.auth.internal.domain.Account;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
@@ -23,6 +25,9 @@ class AccountServiceTest {
 
     @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private AccountService accountService;
@@ -45,5 +50,6 @@ class AccountServiceTest {
         verify(accountRepository).save(savedAccount.capture());
         assertThat(savedAccount.getValue().getEmail()).isEqualTo(EMAIL);
         assertThat(savedAccount.getValue().getPassword()).isEqualTo("password-hash");
+        verify(eventPublisher).publishEvent(new AccountCreated(saved.getId(), EMAIL));
     }
 }
