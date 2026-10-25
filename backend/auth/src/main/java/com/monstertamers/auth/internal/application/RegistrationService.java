@@ -1,5 +1,6 @@
 package com.monstertamers.auth.internal.application;
 
+import com.monstertamers.auth.internal.application.mail.MailService;
 import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.error.AuthErrorCode;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
@@ -21,6 +22,7 @@ public class RegistrationService {
     private final RegistrationAttemptRepository registrationAttemptRepository;
     private final CodeGenerator codeGenerator;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
@@ -31,11 +33,14 @@ public class RegistrationService {
 
         registrationAttemptRepository.deleteAllByEmail(email);
 
+        String code = codeGenerator.confirmationCode();
         RegistrationAttempt attempt = new RegistrationAttempt();
         attempt.setEmail(email);
         attempt.setPassword(passwordEncoder.encode(request.password()));
-        attempt.setCode(passwordEncoder.encode(codeGenerator.confirmationCode()));
+        attempt.setCode(passwordEncoder.encode(code));
         RegistrationAttempt saved = registrationAttemptRepository.save(attempt);
+
+        mailService.sendConfirmationCode(email, saved.getId(), code);
 
         return new RegistrationResponse(saved.getId());
     }

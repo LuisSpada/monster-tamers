@@ -4,14 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.monstertamers.auth.internal.application.mail.MailService;
 import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.shared.error.ApiException;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +49,9 @@ class RegistrationServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private MailService mailService;
+
     @InjectMocks
     private RegistrationService registrationService;
 
@@ -57,7 +63,6 @@ class RegistrationServiceTest {
         when(codeGenerator.confirmationCode()).thenReturn("123456");
         when(passwordEncoder.encode("secret123")).thenReturn("password-hash");
         when(passwordEncoder.encode("123456")).thenReturn("code-hash");
-        when(registrationAttemptRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -69,12 +74,16 @@ class RegistrationServiceTest {
                     assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
                     assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
                 });
-        verifyNoInteractions(registrationAttemptRepository);
+        verifyNoInteractions(registrationAttemptRepository, mailService);
     }
 
     @Test
-    void replacesAttemptWithNewOneWithHashedPasswordAndCode() {
-        registrationService.register(REQUEST);
+    void registersFreeEmail() {
+        RegistrationAttempt saved = new RegistrationAttempt();
+        saved.setId(UUID.randomUUID());
+        when(registrationAttemptRepository.save(any())).thenReturn(saved);
+
+        assertThat(registrationService.register(REQUEST).registrationId()).isEqualTo(saved.getId());
 
         InOrder order = inOrder(registrationAttemptRepository);
         order.verify(registrationAttemptRepository).deleteAllByEmail(EMAIL);
@@ -84,5 +93,6 @@ class RegistrationServiceTest {
         assertThat(attempt.getEmail()).isEqualTo(EMAIL);
         assertThat(attempt.getPassword()).isEqualTo("password-hash");
         assertThat(attempt.getCode()).isEqualTo("code-hash");
+        verify(mailService).sendConfirmationCode(EMAIL, saved.getId(), "123456");
     }
 }
