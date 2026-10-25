@@ -48,7 +48,12 @@ public class RegistrationService {
     }
 
     public void confirm(UUID registrationId, ConfirmationRequest request) {
-        registrationAttemptRepository.findById(registrationId)
+
+        RegistrationAttempt attempt = registrationAttemptRepository.findById(registrationId)
                 .orElseThrow(() -> new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID));
+
+        if (!passwordEncoder.matches(request.code(), attempt.getCode())) {
+            throw new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID);
+        }
     }
 }

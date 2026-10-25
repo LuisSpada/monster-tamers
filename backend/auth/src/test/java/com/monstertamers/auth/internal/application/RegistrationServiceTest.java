@@ -131,5 +131,26 @@ class RegistrationServiceTest {
                 assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.confirmation_code_invalid");
             });
         }
+
+        @Test
+        void wrongCode_rejected() {
+            // given
+            RegistrationAttempt attempt = new RegistrationAttempt();
+            attempt.setId(UUID.randomUUID());
+            attempt.setCode("code-hash");
+
+            ConfirmationRequest request = new ConfirmationRequest("000000");
+            when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
+            when(passwordEncoder.matches("000000", "code-hash")).thenReturn(false);
+
+            // when
+            Throwable thrown = catchThrowable(() -> registrationService.confirm(attempt.getId(), request));
+
+            // then
+            assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+                assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.confirmation_code_invalid");
+            });
+        }
     }
 }
