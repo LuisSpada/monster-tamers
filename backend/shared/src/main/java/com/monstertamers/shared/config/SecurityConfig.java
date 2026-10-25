@@ -19,6 +19,7 @@ public class SecurityConfig {
                         // Without this, Security blocks that forward and the 500 shows up as 401/403.
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api", "/actuator/health").permitAll()
+                        .requestMatchers("/api/registrations/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().denyAll())
                 .exceptionHandling(exceptions -> exceptions
