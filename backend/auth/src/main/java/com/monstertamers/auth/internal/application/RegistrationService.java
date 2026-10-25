@@ -25,6 +25,7 @@ public class RegistrationService {
     private final CodeGenerator codeGenerator;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
+    private final AccountService accountService;
 
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
@@ -47,6 +48,7 @@ public class RegistrationService {
         return new RegistrationResponse(saved.getId());
     }
 
+    @Transactional
     public void confirm(UUID registrationId, ConfirmationRequest request) {
 
         RegistrationAttempt attempt = registrationAttemptRepository.findById(registrationId)
@@ -59,5 +61,8 @@ public class RegistrationService {
         if (accountRepository.existsByEmail(attempt.getEmail())) {
             throw new ApiException(AuthErrorCode.EMAIL_TAKEN);
         }
+
+        accountService.create(attempt.getEmail(), attempt.getPassword());
+        registrationAttemptRepository.delete(attempt);
     }
 }

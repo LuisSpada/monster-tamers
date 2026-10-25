@@ -56,6 +56,9 @@ class RegistrationServiceTest {
     @Mock
     private MailService mailService;
 
+    @Mock
+    private AccountService accountService;
+
     @InjectMocks
     private RegistrationService registrationService;
 
@@ -174,6 +177,28 @@ class RegistrationServiceTest {
                 assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
                 assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
             });
+            verifyNoInteractions(accountService);
+        }
+
+        @Test
+        void validCode_succeeds() {
+            // given
+            RegistrationAttempt attempt = new RegistrationAttempt();
+            attempt.setId(UUID.randomUUID());
+            attempt.setEmail(EMAIL);
+            attempt.setPassword("password-hash");
+            attempt.setCode("code-hash");
+
+            ConfirmationRequest request = new ConfirmationRequest("123456");
+            when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
+            when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
+
+            // when
+            registrationService.confirm(attempt.getId(), request);
+
+            // then
+            verify(accountService).create(EMAIL, "password-hash");
+            verify(registrationAttemptRepository).delete(attempt);
         }
     }
 }
