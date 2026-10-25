@@ -1,18 +1,13 @@
-import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import path from "path";
+import { defineConfig as defineVitestConfig } from "vitest/config";
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+const srcPath = fileURLToPath(new URL("./src", import.meta.url));
 
-  server: {
-    port: 3000,
-  },
-
-  preview: {
-    port: 3000,
-  },
-
+export default defineVitestConfig({
+  plugins: [react()],
+  resolve: { alias: { "@": path.resolve(srcPath) } },
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
