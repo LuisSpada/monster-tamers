@@ -74,6 +74,16 @@ function ThemeSwitch() {
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktop(mediaQuery.matches);
+    onChange();
+    mediaQuery.addEventListener("change", onChange);
+    return () => mediaQuery.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -83,12 +93,14 @@ export default function Layout() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const sidebarOpen = isDesktop ? !open : open;
+
   return (
     <div className="flex min-h-full">
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-30 flex w-[230px] flex-col border-r border-line bg-sidebar transition-transform",
-          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <SceneBackground overlay="bg-sidebar/80" position="left center" className="-z-0" />
@@ -118,7 +130,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      {open && (
+      {open && !isDesktop && (
         <button
           type="button"
           aria-label="Close sidebar"
@@ -126,13 +138,13 @@ export default function Layout() {
           onClick={() => setOpen(false)}
         />
       )}
-      <div className="flex min-w-0 flex-1 flex-col lg:ml-[230px]">
+      <div className={cn("flex min-w-0 flex-1 flex-col", sidebarOpen && "lg:ml-[230px]")}>
         <header className="sticky top-0 z-20 flex h-[68px] items-center gap-4 border-b border-line bg-sidebar/90 px-5 backdrop-blur">
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            aria-label={open ? "Close sidebar" : "Open sidebar"}
-            aria-expanded={open}
+            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            aria-expanded={sidebarOpen}
             className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-inset/60"
           >
             <Menu className="h-5 w-5 text-accent" />
