@@ -17,6 +17,7 @@ import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
 import com.monstertamers.shared.error.ApiException;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -59,49 +60,53 @@ class RegistrationServiceTest {
     @Captor
     private ArgumentCaptor<RegistrationAttempt> savedAttempt;
 
-    @BeforeEach
-    void setUp() {
-        when(codeGenerator.confirmationCode()).thenReturn("123456");
-        when(passwordEncoder.encode("secret123")).thenReturn("password-hash");
-        when(passwordEncoder.encode("123456")).thenReturn("code-hash");
-    }
+    @Nested
+    class Register {
 
-    @Test
-    void rejectsTakenEmail() {
-        // given
-        when(accountRepository.existsByEmail(EMAIL)).thenReturn(true);
+        @BeforeEach
+        void setUp() {
+            when(codeGenerator.confirmationCode()).thenReturn("123456");
+            when(passwordEncoder.encode("secret123")).thenReturn("password-hash");
+            when(passwordEncoder.encode("123456")).thenReturn("code-hash");
+        }
 
-        // when
-        Throwable thrown = catchThrowable(() -> registrationService.register(REQUEST));
+        @Test
+        void takenEmail_rejected() {
+            // given
+            when(accountRepository.existsByEmail(EMAIL)).thenReturn(true);
 
-        // then
-        assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
-            assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-            assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
-        });
-        verifyNoInteractions(registrationAttemptRepository, mailService);
-    }
+            // when
+            Throwable thrown = catchThrowable(() -> registrationService.register(REQUEST));
 
-    @Test
-    void registersFreeEmail() {
-        // given
-        RegistrationAttempt saved = new RegistrationAttempt();
-        saved.setId(UUID.randomUUID());
-        when(registrationAttemptRepository.save(any())).thenReturn(saved);
+            // then
+            assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+                assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
+            });
+            verifyNoInteractions(registrationAttemptRepository, mailService);
+        }
 
-        // when
-        RegistrationResponse response = registrationService.register(REQUEST);
+        @Test
+        void freeEmail_succeeds() {
+            // given
+            RegistrationAttempt saved = new RegistrationAttempt();
+            saved.setId(UUID.randomUUID());
+            when(registrationAttemptRepository.save(any())).thenReturn(saved);
 
-        // then
-        assertThat(response.registrationId()).isEqualTo(saved.getId());
-        InOrder order = inOrder(registrationAttemptRepository);
-        order.verify(registrationAttemptRepository).deleteAllByEmail(EMAIL);
-        order.verify(registrationAttemptRepository).save(savedAttempt.capture());
-        RegistrationAttempt attempt = savedAttempt.getValue();
-        assertThat(attempt.getId()).isNull();
-        assertThat(attempt.getEmail()).isEqualTo(EMAIL);
-        assertThat(attempt.getPassword()).isEqualTo("password-hash");
-        assertThat(attempt.getCode()).isEqualTo("code-hash");
-        verify(mailService).sendConfirmationCode(EMAIL, saved.getId(), "123456");
+            // when
+            RegistrationResponse response = registrationService.register(REQUEST);
+
+            // then
+            assertThat(response.registrationId()).isEqualTo(saved.getId());
+            InOrder order = inOrder(registrationAttemptRepository);
+            order.verify(registrationAttemptRepository).deleteAllByEmail(EMAIL);
+            order.verify(registrationAttemptRepository).save(savedAttempt.capture());
+            RegistrationAttempt attempt = savedAttempt.getValue();
+            assertThat(attempt.getId()).isNull();
+            assertThat(attempt.getEmail()).isEqualTo(EMAIL);
+            assertThat(attempt.getPassword()).isEqualTo("password-hash");
+            assertThat(attempt.getCode()).isEqualTo("code-hash");
+            verify(mailService).sendConfirmationCode(EMAIL, saved.getId(), "123456");
+        }
     }
 }
