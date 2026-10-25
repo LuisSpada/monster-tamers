@@ -1,6 +1,5 @@
 package com.monstertamers.auth.internal.application;
 
-import com.monstertamers.auth.internal.application.mail.MailService;
 import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.error.AuthErrorCode;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
@@ -12,6 +11,7 @@ import com.monstertamers.shared.error.ApiException;
 import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,7 @@ public class RegistrationService {
     private final RegistrationAttemptRepository registrationAttemptRepository;
     private final CodeGenerator codeGenerator;
     private final PasswordEncoder passwordEncoder;
-    private final MailService mailService;
+    private final ApplicationEventPublisher eventPublisher;
     private final AccountService accountService;
 
     @Transactional
@@ -43,7 +43,7 @@ public class RegistrationService {
         attempt.setCode(passwordEncoder.encode(code));
         RegistrationAttempt saved = registrationAttemptRepository.save(attempt);
 
-        mailService.sendConfirmationCode(email, saved.getId(), code);
+        eventPublisher.publishEvent(new ConfirmationCodeIssuedEvent(email, saved.getId(), code));
 
         return new RegistrationResponse(saved.getId());
     }

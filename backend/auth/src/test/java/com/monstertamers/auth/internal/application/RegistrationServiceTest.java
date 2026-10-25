@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.monstertamers.auth.internal.application.mail.MailService;
 import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository;
@@ -30,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -54,7 +54,7 @@ class RegistrationServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private MailService mailService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private AccountService accountService;
@@ -88,7 +88,7 @@ class RegistrationServiceTest {
                 assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
                 assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
             });
-            verifyNoInteractions(registrationAttemptRepository, mailService);
+            verifyNoInteractions(registrationAttemptRepository, eventPublisher);
         }
 
         @Test
@@ -111,7 +111,7 @@ class RegistrationServiceTest {
             assertThat(attempt.getEmail()).isEqualTo(EMAIL);
             assertThat(attempt.getPassword()).isEqualTo("password-hash");
             assertThat(attempt.getCode()).isEqualTo("code-hash");
-            verify(mailService).sendConfirmationCode(EMAIL, saved.getId(), "123456");
+            verify(eventPublisher).publishEvent(new ConfirmationCodeIssuedEvent(EMAIL, saved.getId(), "123456"));
         }
     }
 

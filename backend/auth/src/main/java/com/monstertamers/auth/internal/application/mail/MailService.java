@@ -1,8 +1,9 @@
 package com.monstertamers.auth.internal.application.mail;
 
-import java.util.UUID;
+import com.monstertamers.auth.internal.application.ConfirmationCodeIssuedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
 @RequiredArgsConstructor
@@ -10,9 +11,10 @@ public class MailService {
 
     private final EmailSender emailSender;
 
-    public void sendConfirmationCode(String email, UUID registrationId, String code) {
+    @TransactionalEventListener
+    public void sendConfirmationCode(ConfirmationCodeIssuedEvent event) {
         String subject = "Confirmation code";
-        String body = "Your code: %s. Registration id: %s".formatted(code, registrationId);
-        emailSender.send(email, subject, body);
+        String body = "Your code: %s. Registration id: %s".formatted(event.code(), event.registrationId());
+        emailSender.send(event.email(), subject, body);
     }
 }
