@@ -5,10 +5,12 @@ import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.error.AuthErrorCode;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository;
+import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
 import com.monstertamers.shared.error.ApiException;
 import java.util.Locale;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,5 +45,8 @@ public class RegistrationService {
         mailService.sendConfirmationCode(email, saved.getId(), code);
 
         return new RegistrationResponse(saved.getId());
+    }
+
+    public void confirm(UUID registrationId, ConfirmationRequest request) {
     }
 }
