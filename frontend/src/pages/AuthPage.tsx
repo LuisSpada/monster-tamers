@@ -18,17 +18,39 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
           <div className="font-pixel text-xl font-bold leading-none">MONSTER <span className="text-accent">TAMERS</span></div>
         </div>
         <h1 className="font-pixel text-2xl font-semibold">{register ? "Create account" : "Log in"}</h1>
-        <label className="block text-sm">Email
-          <input type="email" autoComplete="email" className={cn(field, "mt-1")} placeholder="you@example.com" />
+        <label htmlFor="email" className="block text-sm">Email
+          <input id="email" name="email" type="email" required autoComplete="email" className={cn(field, "mt-1")} placeholder="you@example.com" />
         </label>
         {register && (
-          <label className="block text-sm">Player name
-            <input type="text" className={cn(field, "mt-1")} placeholder="Tamer" />
+          <label htmlFor="playerName" className="block text-sm">Player name
+            <input id="playerName" name="playerName" type="text" required autoComplete="nickname" className={cn(field, "mt-1")} placeholder="Tamer" />
           </label>
         )}
-        <label className="block text-sm">Password
-          <input type="password" autoComplete={register ? "new-password" : "current-password"} className={cn(field, "mt-1")} />
+        <label htmlFor="password" className="block text-sm">Password
+          <input id="password" name="password" type="password" required autoComplete={register ? "new-password" : "current-password"} className={cn(field, "mt-1")} />
         </label>
+        {register && (
+          <>
+            <label htmlFor="confirmPassword" className="block text-sm">Confirm password
+              <input id="confirmPassword" name="confirmPassword" type="password" required autoComplete="new-password" className={cn(field, "mt-1")} />
+            </label>
+            <label htmlFor="confirmationCode" className="block text-sm">Confirmation code
+              <input
+                id="confirmationCode"
+                aria-label="Confirmation code"
+                name="confirmationCode"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                required
+                aria-describedby="confirmation-help"
+                className={cn(field, "mt-1 tracking-[0.35em]")}
+                placeholder="000000"
+              />
+              <span id="confirmation-help" className="mt-1 block text-xs text-muted">Enter the six-digit code from your email.</span>
+            </label>
+          </>
+        )}
         <button type="submit" className="h-11 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg">
           {register ? "Create account" : "Log in"}
         </button>

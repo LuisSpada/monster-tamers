@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { Menu, Search } from "lucide-react";
 import { NotificationsMenu, UserMenu } from "@/components/HeaderMenus";
@@ -26,11 +26,12 @@ function Px({ name, className }: { name: string; className?: string }) {
   );
 }
 
-function NavItem({ to, label, icon }: (typeof main)[number]) {
+function NavItem({ to, label, icon, onNavigate }: (typeof main)[number] & { onNavigate: () => void }) {
   return (
     <NavLink
       to={to}
       end={to === "/"}
+      onClick={onNavigate}
       className={({ isActive }) =>
         cn(
           "flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors",
@@ -72,14 +73,22 @@ function ThemeSwitch() {
 }
 
 export default function Layout() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <div className="flex min-h-full">
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-30 flex w-[230px] flex-col border-r border-line bg-sidebar transition-transform",
-          open ? "translate-x-0" : "-translate-x-full"
+          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <SceneBackground overlay="bg-sidebar/80" position="left center" className="-z-0" />
@@ -94,9 +103,9 @@ export default function Layout() {
         </div>
 
         <nav className="relative mt-4 flex flex-col gap-1 px-3">
-          {main.map((i) => <NavItem key={i.to} {...i} />)}
+          {main.map((i) => <NavItem key={i.to} {...i} onNavigate={() => setOpen(false)} />)}
           <div className="my-4 border-t border-line" />
-          {secondary.map((i) => <NavItem key={i.to} {...i} />)}
+          {secondary.map((i) => <NavItem key={i.to} {...i} onNavigate={() => setOpen(false)} />)}
         </nav>
 
         <div className="relative mt-10 flex flex-col gap-4 p-3">
@@ -109,12 +118,21 @@ export default function Layout() {
         </div>
       </aside>
 
-      <div className={cn("flex min-w-0 flex-1 flex-col transition-[margin]", open && "lg:ml-[230px]")}>
+      {open && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          className="fixed inset-0 z-20 bg-black/40 lg:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col lg:ml-[230px]">
         <header className="sticky top-0 z-20 flex h-[68px] items-center gap-4 border-b border-line bg-sidebar/90 px-5 backdrop-blur">
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            aria-label="Toggle sidebar"
+            aria-label={open ? "Close sidebar" : "Open sidebar"}
+            aria-expanded={open}
             className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-inset/60"
           >
             <Menu className="h-5 w-5 text-accent" />
