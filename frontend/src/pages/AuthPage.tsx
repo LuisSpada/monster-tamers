@@ -9,8 +9,6 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   return (
     <div className="relative isolate grid min-h-full place-items-center overflow-hidden bg-bg p-6">
       <SceneBackground overlay="bg-bg/30 dark:bg-transparent" />
-      <img src="/assets/bottom-strip.png" alt="" aria-hidden
-        className="pixelated pointer-events-none absolute inset-x-0 bottom-0 h-[110px] w-full object-cover" />
       <form onSubmit={(e) => e.preventDefault()}
         className="relative z-10 w-full max-w-sm space-y-4 rounded-xl border border-line bg-card/95 p-8 shadow-lg">
         <div className="flex items-center gap-3">

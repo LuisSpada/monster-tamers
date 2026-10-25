@@ -257,9 +257,7 @@ export default function Home() {
   return (
     <div className="relative isolate overflow-hidden">
       <Hero />
-      <img src="/assets/corner-right.png" alt="" aria-hidden
-        className="pixelated pointer-events-none absolute bottom-0 right-0 -z-10 hidden h-[296px] w-auto xl:block" />
-      <div className="mx-auto max-w-[1280px] space-y-5 px-6 pb-[130px] pt-5 lg:px-8">
+      <div className="w-full space-y-6 px-4 pb-[130px] pt-6 lg:px-6">
         <div className="grid gap-5 xl:grid-cols-[1.66fr_1fr]">
           <GoalCard />
           <PlayerCard />

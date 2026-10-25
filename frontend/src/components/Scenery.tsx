@@ -21,11 +21,6 @@ export function SceneBackground({
 /** Bakgrunn for hovedområdet: scenen og vann/and nederst. */
 export default function Scenery() {
   return (
-    <>
-      <SceneBackground />
-      <img src="/assets/bottom-strip.png" alt="" aria-hidden
-        className="pixelated pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[110px] w-full object-cover object-top"
-        style={{ maskImage: "linear-gradient(to top, black 70%, transparent)", WebkitMaskImage: "linear-gradient(to top, black 70%, transparent)" }} />
-    </>
+    <SceneBackground />
   );
 }
