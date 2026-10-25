@@ -11,8 +11,8 @@ npm ci
 npm run dev
 ```
 
-The Vite server listens on `0.0.0.0:5173`, which works locally and in the
-frontend Docker image. Available checks are:
+During local development, the Vite server listens on `0.0.0.0:5173`.
+Available checks are:
 
 ```powershell
 npm run lint
@@ -20,8 +20,11 @@ npm run test
 npm run build
 ```
 
-Routes use `BrowserRouter`. The nginx production configuration falls back to
-`index.html`, so refreshing nested routes such as `/collection` works.
+The production Docker image builds static frontend assets with Vite, then
+Nginx serves those generated assets inside the production container. Docker
+Compose exposes the frontend at `http://localhost:3000`. Routes use
+`BrowserRouter`, and Nginx falls back to `index.html` so nested routes such as
+`/collection` work when refreshed.
 
 The sidebar is desktop-persistent and starts closed on mobile. It can be
 closed with the backdrop, Escape, or after selecting a navigation item.

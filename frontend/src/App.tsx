@@ -27,8 +27,8 @@ export default function App() {
           "Collection size, encounter progress, pending points and final-boss status",
         ]} />} />
         <Route path="settings" element={<WorkInProgress title="Settings" />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
-      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
