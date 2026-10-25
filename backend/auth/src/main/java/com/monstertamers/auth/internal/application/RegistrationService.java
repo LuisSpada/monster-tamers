@@ -55,5 +55,9 @@ public class RegistrationService {
         if (!passwordEncoder.matches(request.code(), attempt.getCode())) {
             throw new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID);
         }
+
+        if (accountRepository.existsByEmail(attempt.getEmail())) {
+            throw new ApiException(AuthErrorCode.EMAIL_TAKEN);
+        }
     }
 }

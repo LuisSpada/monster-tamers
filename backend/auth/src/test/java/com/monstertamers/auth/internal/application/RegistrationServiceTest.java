@@ -152,5 +152,28 @@ class RegistrationServiceTest {
                 assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.confirmation_code_invalid");
             });
         }
+
+        @Test
+        void takenEmail_rejected() {
+            // given
+            RegistrationAttempt attempt = new RegistrationAttempt();
+            attempt.setId(UUID.randomUUID());
+            attempt.setEmail(EMAIL);
+            attempt.setCode("code-hash");
+
+            ConfirmationRequest request = new ConfirmationRequest("123456");
+            when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
+            when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
+            when(accountRepository.existsByEmail(EMAIL)).thenReturn(true);
+
+            // when
+            Throwable thrown = catchThrowable(() -> registrationService.confirm(attempt.getId(), request));
+
+            // then
+            assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+                assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
+            });
+        }
     }
 }
