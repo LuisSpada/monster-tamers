@@ -1,7 +1,7 @@
 package com.monstertamers.auth.internal.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
@@ -13,6 +13,7 @@ import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
+import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
 import com.monstertamers.shared.error.ApiException;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,24 +68,32 @@ class RegistrationServiceTest {
 
     @Test
     void rejectsTakenEmail() {
+        // given
         when(accountRepository.existsByEmail(EMAIL)).thenReturn(true);
 
-        assertThatThrownBy(() -> registrationService.register(REQUEST))
-                .isInstanceOfSatisfying(ApiException.class, ex -> {
-                    assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
-                });
+        // when
+        Throwable thrown = catchThrowable(() -> registrationService.register(REQUEST));
+
+        // then
+        assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+            assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+            assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.email_taken");
+        });
         verifyNoInteractions(registrationAttemptRepository, mailService);
     }
 
     @Test
     void registersFreeEmail() {
+        // given
         RegistrationAttempt saved = new RegistrationAttempt();
         saved.setId(UUID.randomUUID());
         when(registrationAttemptRepository.save(any())).thenReturn(saved);
 
-        assertThat(registrationService.register(REQUEST).registrationId()).isEqualTo(saved.getId());
+        // when
+        RegistrationResponse response = registrationService.register(REQUEST);
 
+        // then
+        assertThat(response.registrationId()).isEqualTo(saved.getId());
         InOrder order = inOrder(registrationAttemptRepository);
         order.verify(registrationAttemptRepository).deleteAllByEmail(EMAIL);
         order.verify(registrationAttemptRepository).save(savedAttempt.capture());
