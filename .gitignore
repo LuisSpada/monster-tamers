@@ -81,3 +81,4 @@ Icon?
 # Generated Vite configuration output
 vite.config.js
 vite.config.d.ts
+/build/
