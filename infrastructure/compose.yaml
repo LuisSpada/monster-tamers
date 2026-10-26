@@ -30,7 +30,7 @@ services:
     container_name: monster-tamers-backend
     build:
       context: ../backend
-      dockerfile: Dockerfile
+      dockerfile: gateway-service/Dockerfile
     restart: unless-stopped
     environment:
       BACKEND_PORT: 8080
