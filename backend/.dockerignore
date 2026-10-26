@@ -2,4 +2,14 @@
 .env*
 !.env.example
 .git
+.gitignore
 .idea
+*.log
+*.crt
+*.cer
+*.pem
+*.key
+*.p12
+*.jks
+*.iml
+*.code-workspace
