@@ -61,8 +61,18 @@ Stop the stack while preserving the database volume:
 docker compose -f backend/compose.yaml down
 ```
 
-The gateway is available at `http://localhost:8080`. Internal service
-hostnames and ports are `gateway-service:8080`, `auth-service:8081`,
+The gateway is available at `http://localhost:8080`. Public gateway routes are:
+
+| Gateway route | Internal target |
+|---|---|
+| `/api/auth/**` | `auth-service:8081` |
+| `/api/players/**` | `player-service:8082` |
+| `/api/monsters/**` | `monster-service:8083` |
+| `/api/encounters/**` | `encounter-service:8084` |
+
+The auth route rewrites `/api/auth/...` to `/api/...` because the existing Auth
+controller uses `/api/registrations`. The other configured routes preserve their
+incoming paths. Internal service hostnames and ports are `gateway-service:8080`, `auth-service:8081`,
 `player-service:8082`, `monster-service:8083`, `encounter-service:8084`, and
 `simulator-service:8085`; only the gateway port is published to the host.
 
@@ -73,8 +83,9 @@ receive datasource or Flyway settings because they do not currently require a
 database. Future service databases should use separate credentials and
 database ownership rather than sharing auth tables.
 
-Current limitations: gateway routing, inter-service HTTP communication, JWT,
-TLS, frontend integration, and separate service databases are not configured.
+Simulator Service has no public gateway route. Current limitations: JWT,
+authentication enforcement, TLS, retries, circuit breakers, frontend
+integration, and separate service databases are not configured.
 The default PostgreSQL password is for local development only and must be
 overridden through environment variables outside local development.
 

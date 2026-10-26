@@ -5,6 +5,12 @@ services:
       dockerfile: gateway-service/Dockerfile
     environment:
       SERVER_PORT: 8080
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:8081}
+      PLAYER_SERVICE_URL: ${PLAYER_SERVICE_URL:-http://player-service:8082}
+      MONSTER_SERVICE_URL: ${MONSTER_SERVICE_URL:-http://monster-service:8083}
+      ENCOUNTER_SERVICE_URL: ${ENCOUNTER_SERVICE_URL:-http://encounter-service:8084}
+      GATEWAY_CORS_ORIGIN_5173: ${GATEWAY_CORS_ORIGIN_5173:-http://localhost:5173}
+      GATEWAY_CORS_ORIGIN_3000: ${GATEWAY_CORS_ORIGIN_3000:-http://localhost:3000}
     ports:
       - "8080:8080"
     networks:
