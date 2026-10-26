@@ -1,15 +1,5 @@
-import { PageHeader } from "../components/common/PageHeader";
-import { PlaceholderCard } from "../components/common/PlaceholderCard";
+import WorkInProgress from "./WorkInProgress";
+
 export function EncounterListPage() {
-  return (
-    <>
-      <PageHeader
-        title="Encounters"
-        description="Preview challenges, opponents and possible rewards."
-      />
-      <PlaceholderCard>
-        This feature will be implemented in its own pull request.
-      </PlaceholderCard>
-    </>
-  );
+  return <WorkInProgress title="Encounters" />;
 }
