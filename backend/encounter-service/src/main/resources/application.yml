@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: encounter-service
+server:
+  port: ${ENCOUNTER_PORT:8084}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: monster-service
+server:
+  port: ${MONSTER_PORT:8083}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

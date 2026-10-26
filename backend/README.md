@@ -1,33 +1,34 @@
 # Backend
-Java 21, Maven and Spring Boot modular-monolith starter.
 
-```bash
-./mvnw test
-./mvnw install -DskipTests && ./mvnw -pl app spring-boot:run
+Java 21, Maven and Spring Boot service modules.
 
-.\mvnw.cmd test
-.\mvnw.cmd install -DskipTests; .\mvnw.cmd -pl app spring-boot:run
+```powershell
+.\mvnw.cmd clean verify
+.\mvnw.cmd -pl gateway-service -am spring-boot:run
+.\mvnw.cmd -pl auth-service -am spring-boot:run
 ```
 
-Runtime uses PostgreSQL. The test profile uses H2 only for initial context tests. Game entities, authentication and migrations are intentionally not implemented yet.
+Each service is an independently executable Spring Boot application and exposes
+`/actuator/health`. Ports and service names are configured in each service's
+`src/main/resources/application.yml`.
 
 ## Modules
 
-| Module | Owns | May use |
-|---|---|---|
-| `auth` | accounts, login, tokens | `shared` |
-| `player` | profile, stats, final-boss progress | `auth`, `shared` |
-| `monster` | catalogue, owned monsters, generation, progression, team | `auth`, `shared` |
-| `encounter` | encounters, unlocks, rewards, history | `monster`, `player`, `simulator`, `shared` |
-| `simulator` | pure deterministic battle engine, no database | — |
-| `shared` | technical helpers, no game logic | — |
-| `app` | Spring Boot entry point, configuration, tests across modules | all |
+| Module | Responsibility |
+|---|---|
+| `gateway-service` | Public backend entry point; routing is intentionally not configured yet |
+| `auth-service` | Accounts and registration; owns its Flyway migrations |
+| `player-service` | Player bounded context |
+| `monster-service` | Monster bounded context |
+| `encounter-service` | Encounter bounded context |
+| `simulator-service` | Simulator bounded context |
+| `shared-contracts` | Framework-light contracts shared by services |
 
-Other modules may only use a module's `api` package; everything else is internal.
-`ModularityTests` (Spring Modulith) fails the build otherwise.
+Service modules do not depend on another service's implementation module.
+Inter-service HTTP communication, gateway routing, separate databases, TLS and
+container configuration are intentionally deferred.
 
 ## Migrations
 
-Flyway. Each module keeps its migrations in `{module}/src/main/resources/db/migration/{module}/`,
-named `V{yyyyMMdd_HHmm}__{module}_{description}.sql`. Versions are global across modules.
-Never rewrite a migration already shared with the team.
+Flyway migrations remain service-owned under
+`{service}/src/main/resources/db/migration/{service}/`.
