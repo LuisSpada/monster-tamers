@@ -22,6 +22,7 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api", "/actuator/health").permitAll()
                         .requestMatchers("/api/registrations/**").permitAll()
+                        .requestMatchers("/api/login").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().denyAll())
                 .exceptionHandling(exceptions -> exceptions
