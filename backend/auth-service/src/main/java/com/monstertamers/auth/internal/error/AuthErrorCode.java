@@ -16,6 +16,11 @@ public enum AuthErrorCode implements ErrorCode {
             "auth.confirmation_code_invalid",
             HttpStatus.BAD_REQUEST,
             "Confirmation code is invalid"
+    ),
+    INVALID_CREDENTIALS(
+            "auth.invalid_credentials",
+            HttpStatus.UNAUTHORIZED,
+            "Email or password is invalid"
     );
 
     private final String code;
