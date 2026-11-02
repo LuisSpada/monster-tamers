@@ -7,6 +7,7 @@ public record LoginRequest(
 
         @NotBlank
         @Email
+        @NormalizedEmail
         String email,
 
         @NotBlank
