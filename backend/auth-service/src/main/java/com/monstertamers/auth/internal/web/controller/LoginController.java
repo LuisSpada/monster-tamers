@@ -21,7 +21,7 @@ public class LoginController {
     private final LoginService loginService;
 
     @PostMapping
-    @Operation(summary = "Log in with email and password, returns access and refresh tokens")
+    @Operation(summary = "Log in with email and password, returns an access token")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return loginService.login(request);
     }

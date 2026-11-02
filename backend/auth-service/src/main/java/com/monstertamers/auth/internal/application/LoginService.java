@@ -14,9 +14,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LoginService {
 
-    // Placeholder until refresh tokens are implemented in GH-21.
-    private static final String REFRESH_TOKEN_STUB = "implement-me";
-
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final AccessTokenIssuer accessTokenIssuer;
@@ -29,6 +26,6 @@ public class LoginService {
             throw new ApiException(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
-        return new LoginResponse(accessTokenIssuer.issue(account.getId()), REFRESH_TOKEN_STUB);
+        return new LoginResponse(accessTokenIssuer.issue(account.getId()));
     }
 }
