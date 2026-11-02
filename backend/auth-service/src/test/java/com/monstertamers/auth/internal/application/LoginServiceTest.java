@@ -8,7 +8,9 @@ import com.monstertamers.auth.error.ApiException;
 import com.monstertamers.auth.internal.domain.Account;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.web.dto.request.LoginRequest;
+import com.monstertamers.auth.internal.web.dto.response.LoginResponse;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +30,9 @@ class LoginServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AccessTokenIssuer accessTokenIssuer;
 
     @InjectMocks
     private LoginService loginService;
@@ -64,5 +69,23 @@ class LoginServiceTest {
             assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
             assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.invalid_credentials");
         });
+    }
+
+    @Test
+    void validCredentials_issueAccessToken() {
+        // given
+        Account account = new Account();
+        account.setId(UUID.randomUUID());
+        account.setEmail(EMAIL);
+        account.setPassword("password-hash");
+        when(accountRepository.findByEmail(EMAIL)).thenReturn(Optional.of(account));
+        when(passwordEncoder.matches(REQUEST.password(), account.getPassword())).thenReturn(true);
+        when(accessTokenIssuer.issue(account.getId())).thenReturn("access-token");
+
+        // when
+        LoginResponse response = loginService.login(REQUEST);
+
+        // then
+        assertThat(response.accessToken()).isEqualTo("access-token");
     }
 }

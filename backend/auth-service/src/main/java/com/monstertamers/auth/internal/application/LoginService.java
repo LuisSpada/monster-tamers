@@ -19,6 +19,7 @@ public class LoginService {
 
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AccessTokenIssuer accessTokenIssuer;
 
     public LoginResponse login(LoginRequest request) {
         Account account = accountRepository.findByEmail(request.email())
@@ -28,6 +29,6 @@ public class LoginService {
             throw new ApiException(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
-        return new LoginResponse("implement-me", REFRESH_TOKEN_STUB);
+        return new LoginResponse(accessTokenIssuer.issue(account.getId()), REFRESH_TOKEN_STUB);
     }
 }
