@@ -8,7 +8,6 @@ import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
 import com.monstertamers.auth.error.ApiException;
-import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,7 +28,7 @@ public class RegistrationService {
 
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
-        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        String email = request.email();
         if (accountRepository.existsByEmail(email)) {
             throw new ApiException(AuthErrorCode.EMAIL_TAKEN);
         }

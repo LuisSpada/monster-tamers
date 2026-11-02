@@ -11,6 +11,7 @@ public record RegistrationRequest(
 
         @NotBlank
         @Email
+        @NormalizedEmail
         String email,
 
         @NotBlank

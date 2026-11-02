@@ -39,7 +39,7 @@ class RegistrationServiceTest {
 
     private static final String EMAIL = "tamer@example.com";
     private static final RegistrationRequest REQUEST =
-            new RegistrationRequest("  Tamer@Example.COM ", "secret123", "secret123");
+            new RegistrationRequest(EMAIL, "secret123", "secret123");
 
     @Mock
     private AccountRepository accountRepository;
