@@ -5,7 +5,7 @@ Java 21, Maven and Spring Boot service modules.
 ```powershell
 .\mvnw.cmd clean verify
 .\mvnw.cmd -pl gateway-service -am spring-boot:run
-.\mvnw.cmd -pl auth-service -am spring-boot:run
+.\mvnw.cmd -pl auth-service -am spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
 Each service is an independently executable Spring Boot application and exposes
@@ -88,6 +88,8 @@ authentication enforcement, TLS, retries, circuit breakers, frontend
 integration, and separate service databases are not configured.
 The default PostgreSQL password is for local development only and must be
 overridden through environment variables outside local development.
+Auth Service has a default `JWT_SECRET` only in the `local` profile; without
+that profile it does not start unless `JWT_SECRET` is set.
 
 ## Modules
 

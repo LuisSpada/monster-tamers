@@ -31,6 +31,7 @@ services:
       AUTH_DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-monster_tamers_auth}
       AUTH_DATABASE_USERNAME: ${POSTGRES_USER:-monster_tamers_auth}
       AUTH_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-change-me-development-only}
+      JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
     depends_on:
       postgres:
         condition: service_healthy
