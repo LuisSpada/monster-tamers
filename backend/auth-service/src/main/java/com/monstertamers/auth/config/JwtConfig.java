@@ -18,6 +18,9 @@ public class JwtConfig {
 
     @Bean
     JwtEncoder jwtEncoder(JwtProperties properties) {
+        if (properties.secret() == null || properties.secret().isBlank()) {
+            throw new IllegalStateException("app.jwt.secret is not set: provide JWT_SECRET or run with the local profile");
+        }
         byte[] secret = properties.secret().getBytes(StandardCharsets.UTF_8);
         if (secret.length < MIN_SECRET_BYTES) {
             throw new IllegalStateException("app.jwt.secret must be at least " + MIN_SECRET_BYTES + " bytes");
