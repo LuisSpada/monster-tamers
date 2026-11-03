@@ -110,6 +110,11 @@ export function BattlePreparationPage() {
                     {encounter.opponents.length} {encounter.opponents.length === 1 ? "opponent" : "opponents"} ·{" "}
                     {encounter.isFinalBoss ? "no egg reward" : `${encounter.eggChance}% egg chance`}
                   </p>
+                  {encounter.status === "cleared" && (
+                    <p className="mt-2 text-sm text-grass">
+                      Replay: your whole team earns experience again{encounter.isFinalBoss ? "." : ", with another chance at an egg."}
+                    </p>
+                  )}
                 </Panel>
 
                 <Arena lineup={lineup} opponents={encounter.opponents} fighting={starting} />

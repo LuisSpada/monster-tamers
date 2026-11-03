@@ -14,6 +14,7 @@ describe("battle flow", () => {
     expect(screen.getByText("Rewards")).toBeTruthy();
     expect(screen.getByText("Battle log")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Spend stat points" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Fight this encounter again/ }).getAttribute("href")).toBe("/encounters/e4/prepare");
   });
 
   it("keeps the start button disabled for a locked encounter", async () => {

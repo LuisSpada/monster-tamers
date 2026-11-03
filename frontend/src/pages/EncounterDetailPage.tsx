@@ -12,7 +12,10 @@ import { PageContainer } from "../components/game/PageContainer";
 import { Panel } from "../components/game/Panel";
 import { ProgressBar } from "../components/game/ProgressBar";
 import { PageBanner } from "../components/game/fx/PageBanner";
-import { BANNER, ENCOUNTER_ART, FLOAT_STAGGER } from "../components/game/fx/fx";
+import { EncounterParticles } from "../components/game/fx/EncounterParticles";
+import { THEME_TONE, encounterArt, encounterTheme } from "../components/game/fx/encounterArt";
+import { FLOAT_STAGGER } from "../components/game/fx/fx";
+import { formatDateTime } from "../domain/format";
 import { btnPrimary, chip, linkCls } from "../components/game/styles";
 import { CLASS_INFO } from "../domain/classInfo";
 import { useAsync } from "../hooks/useAsync";
@@ -20,10 +23,20 @@ import { cn } from "../lib/utils";
 
 export function EncounterDetailPage() {
   const { encounterId = "" } = useParams();
-  const { encounters } = useServices();
-  const load = useCallback(() => encounters.getEncounter(encounterId), [encounters, encounterId]);
+  const { encounters, history } = useServices();
+  const load = useCallback(async () => {
+    const [encounter, battles] = await Promise.all([encounters.getEncounter(encounterId), history.listBattles()]);
+    const rows = battles.filter((b) => b.encounterId === encounterId);
+    return {
+      encounter,
+      attempts: rows.length,
+      wins: rows.filter((b) => b.outcome === "victory").length,
+      lastPlayedAt: rows[0]?.playedAt ?? null,
+    };
+  }, [encounters, history, encounterId]);
   const { state, reload } = useAsync(load);
-  const encounter = state.status === "success" ? state.data : null;
+  const data = state.status === "success" ? state.data : null;
+  const encounter = data ? data.encounter : null;
 
   return (
     <>
@@ -34,12 +47,12 @@ export function EncounterDetailPage() {
         </Link>
         {state.status === "loading" && <LoadingState label="Loading encounter…" />}
         {state.status === "error" && <ErrorState message={state.message} onRetry={reload} />}
-        {encounter && (
+        {data && encounter && (
           <>
             <PageBanner
-              image={encounter.isFinalBoss ? BANNER.hero : ENCOUNTER_ART[(encounter.order - 1) % ENCOUNTER_ART.length]}
-              position={encounter.isFinalBoss ? "right center" : "center"}
-              tone={encounter.isFinalBoss ? "violet" : "accent"}
+              image={encounterArt(encounter)}
+              tone={THEME_TONE[encounterTheme(encounter)]}
+              overlay={<EncounterParticles theme={encounterTheme(encounter)} count={16} />}
               eyebrow={`Encounter ${encounter.order}`}
               chips={
                 <>
@@ -103,6 +116,22 @@ export function EncounterDetailPage() {
               </Panel>
             </div>
 
+            <Panel title="Your record" className="animate-rise [animation-delay:220ms]">
+              {data.attempts === 0 ? (
+                <p className="text-sm text-muted">You have not played this encounter yet.</p>
+              ) : (
+                <p className="text-sm">
+                  Won <strong>{data.wins}</strong> of <strong>{data.attempts}</strong> {data.attempts === 1 ? "attempt" : "attempts"}
+                  {data.lastPlayedAt && <span className="text-muted"> · last played {formatDateTime(data.lastPlayedAt)}</span>}
+                </p>
+              )}
+              {encounter.status === "cleared" && (
+                <p className="mt-2 text-sm text-grass">
+                  Cleared. Replay it to earn experience for your whole team{encounter.isFinalBoss ? "." : " and another chance at an egg."}
+                </p>
+              )}
+            </Panel>
+
             <div className="flex flex-wrap items-center gap-3">
               {encounter.status === "locked" ? (
                 <>
@@ -113,7 +142,7 @@ export function EncounterDetailPage() {
                 </>
               ) : (
                 <Link to={paths.prepare(encounter.id)} className={cn(btnPrimary, "animate-glow")}>
-                  <Swords className="h-4 w-4" aria-hidden /> Prepare for battle
+                  <Swords className="h-4 w-4" aria-hidden /> {encounter.status === "cleared" ? "Replay encounter" : "Prepare for battle"}
                 </Link>
               )}
             </div>

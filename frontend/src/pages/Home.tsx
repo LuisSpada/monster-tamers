@@ -12,6 +12,7 @@ import { MAX_TEAM_SIZE, type Encounter, type Monster, type MonsterClass, type Pl
 import { surfaceCard } from "@/components/game/styles";
 import { Fireflies } from "@/components/game/fx/Fireflies";
 import { FLOAT_STAGGER } from "@/components/game/fx/fx";
+import { THEME_ART, encounterArt } from "@/components/game/fx/encounterArt";
 
 const activity = [
   { icon: "act-level", title: "Fierce Fox reached level 4", sub: "1 stat point to spend", time: "2h ago" },
@@ -180,7 +181,7 @@ function NextEncounterCard({ encounter, total }: { encounter: Encounter; total: 
     <Card className="p-4">
       <h3 className="mb-3 font-pixel text-lg font-semibold">Next Encounter</h3>
       <div className="flex gap-4">
-        <SceneImage src="/assets/misty-forest.png" className="h-[150px] w-[130px] shrink-0 rounded-md bg-[#2a6b4a]" />
+        <SceneImage src={encounterArt(e)} className="h-[150px] w-[130px] shrink-0 rounded-md bg-[#2a6b4a]" />
         <div className="min-w-0 flex-1">
           <div className="font-pixel text-lg font-semibold">{e.name}</div>
           <div className="text-sm text-muted">Encounter {e.order} of {total}</div>
@@ -228,7 +229,7 @@ function FinalBossCard({ defeated }: { defeated: boolean }) {
     <Card className="p-4">
       <h3 className="mb-3 font-pixel text-base font-semibold">Final Boss</h3>
       <div className="flex gap-4">
-        <SceneImage src="/assets/frostpeak.png" className="h-[130px] w-[114px] shrink-0 rounded-md bg-[#5b86c4]" />
+        <SceneImage src={THEME_ART.summit} className="h-[130px] w-[114px] shrink-0 rounded-md bg-[#5b86c4]" />
         <div className="min-w-0">
           <span className="rounded bg-violet-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">Objective</span>
           <div className="mt-1.5 font-pixel text-base font-semibold">
@@ -287,15 +288,15 @@ export default function Home() {
     <div className="relative isolate overflow-hidden">
       <Hero playerName={progress.playerName} />
       <div className="w-full space-y-6 px-4 pb-[130px] pt-6 lg:px-6">
-        <div className="grid animate-rise gap-6 [animation-delay:60ms] xl:grid-cols-[1.7fr_1fr]">
+        <div className="grid animate-rise gap-5 [animation-delay:60ms] xl:grid-cols-[1.66fr_1fr]">
           <GoalCard />
           <PlayerCard progress={progress} />
         </div>
-        <div className="grid animate-rise gap-6 [animation-delay:160ms] xl:grid-cols-[1.7fr_1fr]">
+        <div className="grid animate-rise gap-5 [animation-delay:160ms] xl:grid-cols-[1.66fr_1fr]">
           <TeamCard team={team} />
           {nextEncounter ? <NextEncounterCard encounter={nextEncounter} total={progress.encountersTotal} /> : <Card className="p-4">No encounters available.</Card>}
         </div>
-        <div className="grid animate-rise gap-6 [animation-delay:260ms] lg:grid-cols-2 xl:grid-cols-[1fr_1.2fr_1.15fr]">
+        <div className="grid animate-rise gap-5 [animation-delay:260ms] lg:grid-cols-2 xl:grid-cols-[1fr_1.15fr_1.1fr]">
           <RecentActivityCard />
           <FinalBossCard defeated={progress.finalBossDefeated} />
           <TipCard />

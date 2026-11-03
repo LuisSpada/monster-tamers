@@ -4,6 +4,7 @@ import { BattleSplash } from "../components/game/fx/BattleSplash";
 import { Confetti } from "../components/game/fx/Confetti";
 import { PageBanner } from "../components/game/fx/PageBanner";
 import { Reveal } from "../components/game/fx/Reveal";
+import { THEME_ART, encounterTheme } from "../components/game/fx/encounterArt";
 import { RingProgress } from "../components/game/fx/RingProgress";
 import "./gameTestUtils"; // registers the automatic cleanup
 
@@ -42,5 +43,12 @@ describe("motion components", () => {
   it("reveals its children with the requested delay", () => {
     render(<Reveal delay={120}><p>Hello</p></Reveal>);
     expect((screen.getByText("Hello").parentElement as HTMLElement).style.animationDelay).toBe("120ms");
+  });
+
+  it("gives every encounter its own embedded banner", () => {
+    expect([1, 2, 3, 4].map((order) => encounterTheme({ order, isFinalBoss: false }))).toEqual(["meadow", "quarry", "ruins", "forest"]);
+    expect(encounterTheme({ order: 5, isFinalBoss: true })).toBe("summit");
+    expect(new Set(Object.values(THEME_ART)).size).toBe(5);
+    Object.values(THEME_ART).forEach((uri) => expect(uri.startsWith("data:image/png;base64,")).toBe(true));
   });
 });

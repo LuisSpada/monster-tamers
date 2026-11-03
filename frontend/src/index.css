@@ -114,6 +114,9 @@ body {
   --animate-ring-draw: ring-draw 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
   --animate-clash-left: clash-left 0.7s ease-in-out infinite;
   --animate-clash-right: clash-right 0.7s ease-in-out infinite;
+  --animate-snow: snow 6s linear infinite;
+  --animate-dust: dust 8s ease-out infinite;
+  --animate-mist: mist 14s ease-in-out infinite alternate;
 
   @keyframes rise {
     from { opacity: 0; transform: translateY(14px); }
@@ -178,6 +181,20 @@ body {
   @keyframes clash-right {
     0%, 100% { transform: translateX(0); }
     50% { transform: translateX(-22px); }
+  }
+  @keyframes snow {
+    0% { opacity: 0; transform: translate(0, -6px); }
+    10% { opacity: 1; }
+    100% { opacity: 0.9; transform: translate(-18px, 180px); }
+  }
+  @keyframes dust {
+    0% { opacity: 0; transform: translate(0, 0); }
+    30% { opacity: 0.8; }
+    100% { opacity: 0; transform: translate(80px, -22px); }
+  }
+  @keyframes mist {
+    from { transform: translateX(-8%); }
+    to { transform: translateX(8%); }
   }
   @keyframes grow-x {
     from { transform: scaleX(0); }

@@ -1,5 +1,7 @@
 import { useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { RotateCcw } from "lucide-react";
+import { paths } from "../app/paths";
 import { useServices } from "../api/useServices";
 import { PageHeader } from "../components/common/PageHeader";
 import { BattleReport } from "../components/game/BattleReport";
@@ -7,6 +9,7 @@ import { ErrorState, LoadingState } from "../components/game/AsyncState";
 import { PageContainer } from "../components/game/PageContainer";
 import { BattleSplash } from "../components/game/fx/BattleSplash";
 import { Confetti } from "../components/game/fx/Confetti";
+import { btnPrimary } from "../components/game/styles";
 import { useAsync } from "../hooks/useAsync";
 
 export function BattleResultPage() {
@@ -26,6 +29,9 @@ export function BattleResultPage() {
             {state.data.outcome === "victory" && <Confetti />}
             <BattleSplash outcome={state.data.outcome} />
             <BattleReport result={state.data} variant="result" />
+            <Link to={paths.prepare(state.data.encounterId)} className={btnPrimary}>
+              <RotateCcw className="h-4 w-4" aria-hidden /> Fight this encounter again
+            </Link>
           </>
         )}
       </PageContainer>

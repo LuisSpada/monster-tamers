@@ -22,13 +22,15 @@ interface PageBannerProps {
   eyebrow?: string;
   tagline?: string;
   chips?: ReactNode;
+  /** Decorative layer on top of the image, e.g. <EncounterParticles />. */
+  overlay?: ReactNode;
   tone?: keyof typeof TONES;
   position?: string;
   className?: string;
 }
 
 /** Decorative pixel-art banner with a slow zoom and twinkling stars. It never repeats the page title. */
-export function PageBanner({ image, eyebrow, tagline, chips, tone = "accent", position = "center", className }: PageBannerProps) {
+export function PageBanner({ image, eyebrow, tagline, chips, overlay, tone = "accent", position = "center", className }: PageBannerProps) {
   return (
     <div className={cn("relative isolate h-[140px] animate-rise overflow-hidden rounded-2xl border border-line shadow-lg shadow-black/15 sm:h-[160px]", className)}>
       <img
@@ -40,6 +42,7 @@ export function PageBanner({ image, eyebrow, tagline, chips, tone = "accent", po
       />
       <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-bg/90 via-bg/45 to-transparent" />
       <div aria-hidden className={cn("absolute inset-0 -z-10 bg-gradient-to-t to-transparent", TONES[tone])} />
+      {overlay}
       {TWINKLES.map((t, i) => (
         <span
           key={i}
