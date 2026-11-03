@@ -6,8 +6,8 @@ export function PageHeader({
   description: string;
 }) {
   return (
-    <header className="relative mx-auto w-full max-w-[1400px] px-4 pb-2 pt-6 sm:px-6 lg:px-8">
-      <div className="relative overflow-hidden rounded-xl border border-line bg-card/70 px-5 py-5 shadow-lg shadow-black/10 backdrop-blur-sm sm:px-7 sm:py-6">
+    <header className="relative mx-auto w-full max-w-[1600px] px-4 pb-2 pt-7 sm:px-6 lg:px-10">
+      <div className="relative overflow-hidden rounded-xl border border-line bg-card/70 px-6 py-6 shadow-lg shadow-black/10 backdrop-blur-sm sm:px-8 sm:py-7">
         <div className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
         <p className="relative mb-1 font-pixel text-xs font-semibold uppercase tracking-[0.2em] text-accent">
           Monster Tamers

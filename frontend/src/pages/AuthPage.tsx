@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { SceneBackground } from "@/components/Scenery";
+import { Fireflies } from "@/components/game/fx/Fireflies";
 import { cn } from "@/lib/utils";
 
 /** Statisk skjema for registrering/innlogging (US-01, US-02). Ingen logikk ennå. */
@@ -9,10 +10,11 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   return (
     <div className="relative isolate grid min-h-full place-items-center overflow-hidden bg-bg p-6">
       <SceneBackground />
+      <Fireflies count={16} className="-z-10" />
       <form onSubmit={(e) => e.preventDefault()}
-        className="relative z-10 w-full max-w-sm space-y-4 rounded-2xl border border-line bg-card/90 p-8 shadow-2xl shadow-black/20 backdrop-blur-md">
+        className="relative z-10 w-full max-w-sm animate-rise space-y-4 rounded-2xl border border-line bg-card/90 p-8 shadow-2xl shadow-black/20 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <img src="/assets/logo.png" alt="" className="pixelated h-12 w-12 rounded-md" />
+          <img src="/assets/logo.png" alt="" className="pixelated h-12 w-12 animate-float rounded-md" />
           <div className="font-pixel text-xl font-bold leading-none">MONSTER <span className="text-accent">TAMERS</span></div>
         </div>
         <div>

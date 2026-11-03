@@ -11,9 +11,12 @@ import { MonsterAvatar } from "../components/game/MonsterAvatar";
 import { PageContainer } from "../components/game/PageContainer";
 import { Panel } from "../components/game/Panel";
 import { ProgressBar } from "../components/game/ProgressBar";
-import { btnPrimary, linkCls } from "../components/game/styles";
+import { PageBanner } from "../components/game/fx/PageBanner";
+import { BANNER, ENCOUNTER_ART, FLOAT_STAGGER } from "../components/game/fx/fx";
+import { btnPrimary, chip, linkCls } from "../components/game/styles";
 import { CLASS_INFO } from "../domain/classInfo";
 import { useAsync } from "../hooks/useAsync";
+import { cn } from "../lib/utils";
 
 export function EncounterDetailPage() {
   const { encounterId = "" } = useParams();
@@ -33,6 +36,22 @@ export function EncounterDetailPage() {
         {state.status === "error" && <ErrorState message={state.message} onRetry={reload} />}
         {encounter && (
           <>
+            <PageBanner
+              image={encounter.isFinalBoss ? BANNER.hero : ENCOUNTER_ART[(encounter.order - 1) % ENCOUNTER_ART.length]}
+              position={encounter.isFinalBoss ? "right center" : "center"}
+              tone={encounter.isFinalBoss ? "violet" : "accent"}
+              eyebrow={`Encounter ${encounter.order}`}
+              chips={
+                <>
+                  <span className={cn(chip, "bg-bg/70 backdrop-blur-sm")}>
+                    {encounter.opponents.length} {encounter.opponents.length === 1 ? "opponent" : "opponents"}
+                  </span>
+                  <span className={cn(chip, "bg-bg/70 backdrop-blur-sm", !encounter.isFinalBoss && "text-gold")}>
+                    {encounter.isFinalBoss ? "No egg reward" : `Egg chance ${encounter.eggChance}%`}
+                  </span>
+                </>
+              }
+            />
             <Panel>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted">Encounter {encounter.order}</span>
@@ -43,12 +62,12 @@ export function EncounterDetailPage() {
               <p className="mt-2 text-sm text-muted">{encounter.description}</p>
             </Panel>
 
-            <div className="grid items-stretch gap-5 lg:grid-cols-2">
+            <div className="grid animate-rise items-stretch gap-5 [animation-delay:150ms] lg:grid-cols-2">
               <Panel title="Opponents">
                 <ul className="space-y-2">
-                  {encounter.opponents.map((o) => (
+                  {encounter.opponents.map((o, i) => (
                     <li key={o.id} className="flex items-center gap-3 rounded-lg border border-line bg-inset/60 p-2">
-                      <MonsterAvatar monsterClass={o.monsterClass} variant={o.avatarVariant} size="sm" label={`${o.name}, ${o.monsterClass}`} />
+                      <MonsterAvatar monsterClass={o.monsterClass} variant={o.avatarVariant} size="sm" label={`${o.name}, ${o.monsterClass}`} className={cn("animate-bob", FLOAT_STAGGER[i % 3])} />
                       <div className="min-w-0 flex-1">
                         <div className="truncate font-medium">{o.name}</div>
                         <div className="text-xs text-muted">Lv. {o.level}</div>
@@ -65,7 +84,7 @@ export function EncounterDetailPage() {
                 ) : (
                   <>
                     <div className="mb-1 flex justify-between text-sm">
-                      <span className="text-muted">Egg chance</span>
+                      <span className="text-muted"><span aria-hidden className="mr-1.5 inline-block animate-wobble">🥚</span>Egg chance</span>
                       <span className="font-pixel font-semibold">{encounter.eggChance}%</span>
                     </div>
                     <ProgressBar value={encounter.eggChance} max={100} label={`Egg chance ${encounter.eggChance} percent`} barClassName="bg-gold" />
@@ -93,7 +112,7 @@ export function EncounterDetailPage() {
                   <p className="text-sm text-muted">This encounter is locked. Clear the earlier encounters first.</p>
                 </>
               ) : (
-                <Link to={paths.prepare(encounter.id)} className={btnPrimary}>
+                <Link to={paths.prepare(encounter.id)} className={cn(btnPrimary, "animate-glow")}>
                   <Swords className="h-4 w-4" aria-hidden /> Prepare for battle
                 </Link>
               )}

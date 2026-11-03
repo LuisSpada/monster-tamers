@@ -10,10 +10,13 @@ import { ClassBadge } from "../components/game/ClassBadge";
 import { MonsterAvatar } from "../components/game/MonsterAvatar";
 import { PageContainer } from "../components/game/PageContainer";
 import { Panel } from "../components/game/Panel";
-import { btnDanger, btnPrimary, btnSecondary } from "../components/game/styles";
+import { PageBanner } from "../components/game/fx/PageBanner";
+import { BANNER, CLASS_AURA, CLASS_TINT, stagger } from "../components/game/fx/fx";
+import { btnDanger, btnPrimary, btnSecondary, chip } from "../components/game/styles";
 import { validateTeam } from "../domain/teamRules";
 import { MAX_TEAM_SIZE, type Monster } from "../domain/types";
 import { useAsync } from "../hooks/useAsync";
+import { cn } from "../lib/utils";
 
 const NO_MONSTERS: Monster[] = [];
 
@@ -71,17 +74,39 @@ export function TeamPage() {
         {state.status === "error" && <ErrorState message={state.message} onRetry={reload} />}
         {state.status === "success" && (
           <>
+            <PageBanner
+              image={BANNER.hero}
+              tone="accent"
+              eyebrow="Lineup"
+              tagline="Pick your fighters. Slot #1 steps up first."
+              chips={
+                <>
+                  <span className={cn(chip, "bg-bg/70 backdrop-blur-sm")}>{current.length} / {MAX_TEAM_SIZE} monsters</span>
+                  <span className={cn(chip, "bg-bg/70 backdrop-blur-sm", validation.valid ? "text-grass" : "text-danger")}>
+                    {validation.valid ? "Ready for battle" : "Not ready yet"}
+                  </span>
+                </>
+              }
+            />
             <Panel title="Your team" action={<span className="text-sm text-muted">{current.length} / {MAX_TEAM_SIZE}</span>}>
               <ol aria-label="Team slots" className="grid items-stretch gap-4 md:grid-cols-3">
                 {Array.from({ length: MAX_TEAM_SIZE }, (_, index) => {
                   const monster: Monster | undefined = byId.get(current[index] ?? "");
                   return (
-                    <li key={index} className="flex min-h-[190px] flex-col rounded-xl border border-line bg-inset/60 p-4">
+                    <li
+                      key={index}
+                      className={cn(
+                        "flex min-h-[190px] flex-col rounded-xl border p-4 transition-colors",
+                        monster
+                          ? cn("border-line bg-gradient-to-br to-inset/60", CLASS_TINT[monster.monsterClass])
+                          : "border-dashed border-accent/40 bg-inset/30",
+                      )}
+                    >
                       <div className="mb-2 font-pixel text-sm text-muted">Slot #{index + 1}</div>
                       {monster ? (
-                        <div className="flex flex-1 flex-col justify-between gap-3">
+                        <div key={monster.id} className="flex flex-1 animate-pop flex-col justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <MonsterAvatar monsterClass={monster.monsterClass} variant={monster.avatarVariant} size="sm" label={`${monster.name}, ${monster.monsterClass}`} />
+                            <MonsterAvatar monsterClass={monster.monsterClass} variant={monster.avatarVariant} size="sm" label={`${monster.name}, ${monster.monsterClass}`} className={cn("animate-bob", CLASS_AURA[monster.monsterClass])} />
                             <div className="min-w-0">
                               <div className="truncate font-medium">{monster.name}</div>
                               <div className="flex items-center gap-2 text-xs text-muted">Lv. {monster.level} <ClassBadge monsterClass={monster.monsterClass} showLabel /></div>
@@ -100,7 +125,12 @@ export function TeamPage() {
                           </div>
                         </div>
                       ) : (
-                        <p className="py-6 text-center text-sm text-muted">Empty slot. Add a monster below.</p>
+                        <div className="grid flex-1 place-items-center text-center text-sm text-muted">
+                          <div>
+                            <span aria-hidden className="mb-1 block animate-bob text-3xl text-accent/70">＋</span>
+                            Empty slot. Add a monster below.
+                          </div>
+                        </div>
                       )}
                     </li>
                   );
@@ -140,11 +170,11 @@ export function TeamPage() {
 
             <Panel title="Available monsters">
               {full && <p className="mb-3 text-sm text-muted">Your team is full. Remove a monster to add another one.</p>}
-              <ul className="grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                {list.map((m) => {
+              <ul className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                {list.map((m, i) => {
                   const inTeam = current.includes(m.id);
                   return (
-                    <li key={m.id} className="flex h-full items-center gap-3 rounded-lg border border-line bg-inset/60 p-3">
+                    <li key={m.id} className="flex h-full animate-rise items-center gap-3 rounded-lg border border-line bg-inset/60 p-3 transition-colors hover:border-accent" style={{ animationDelay: `${stagger(i, 40, 400)}ms` }}>
                       <MonsterAvatar monsterClass={m.monsterClass} variant={m.avatarVariant} size="sm" label={`${m.name}, ${m.monsterClass}`} />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">{m.name}</div>

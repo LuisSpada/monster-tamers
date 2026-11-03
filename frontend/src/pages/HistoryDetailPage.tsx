@@ -7,6 +7,7 @@ import { PageHeader } from "../components/common/PageHeader";
 import { BattleReport } from "../components/game/BattleReport";
 import { ErrorState, LoadingState } from "../components/game/AsyncState";
 import { PageContainer } from "../components/game/PageContainer";
+import { Reveal } from "../components/game/fx/Reveal";
 import { linkCls } from "../components/game/styles";
 import { useAsync } from "../hooks/useAsync";
 
@@ -25,7 +26,11 @@ export function HistoryDetailPage() {
         </Link>
         {state.status === "loading" && <LoadingState label="Loading battle…" />}
         {state.status === "error" && <ErrorState message={state.message} onRetry={reload} />}
-        {state.status === "success" && <BattleReport result={state.data} variant="history" />}
+        {state.status === "success" && (
+          <Reveal>
+            <BattleReport result={state.data} variant="history" />
+          </Reveal>
+        )}
       </PageContainer>
     </>
   );

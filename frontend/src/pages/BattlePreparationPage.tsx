@@ -13,7 +13,40 @@ import { PageContainer } from "../components/game/PageContainer";
 import { Panel } from "../components/game/Panel";
 import { btnPrimary, btnSecondary, linkCls } from "../components/game/styles";
 import { validateTeam } from "../domain/teamRules";
+import { CLASS_AURA, FLOAT_STAGGER } from "../components/game/fx/fx";
+import type { Monster, Opponent } from "../domain/types";
 import { useAsync } from "../hooks/useAsync";
+import { cn } from "../lib/utils";
+
+/** Decorative "versus" arena. The same information is available as text in the panels below. */
+function Arena({ lineup, opponents, fighting }: { lineup: Monster[]; opponents: Opponent[]; fighting: boolean }) {
+  return (
+    <Panel className="relative overflow-hidden bg-gradient-to-b from-card/90 to-accent/10">
+      <div aria-hidden className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-2">
+        <div className="flex flex-wrap items-end justify-center gap-4">
+          {lineup.length === 0 && <span className="text-sm text-muted">No team</span>}
+          {lineup.map((m, i) => (
+            <div key={m.id} className={cn("flex flex-col items-center gap-1", fighting && "animate-clash-left")}>
+              <MonsterAvatar monsterClass={m.monsterClass} variant={m.avatarVariant} size="sm" label={m.name} className={cn("animate-float", FLOAT_STAGGER[i % 3], CLASS_AURA[m.monsterClass])} />
+              <span className="max-w-20 truncate text-xs text-muted">{m.name}</span>
+            </div>
+          ))}
+        </div>
+        <div className={cn("grid h-14 w-14 place-items-center rounded-full border-2 border-gold/60 bg-gold/15 font-pixel text-xl font-bold text-gold", fighting ? "animate-swing" : "animate-glow")}>
+          VS
+        </div>
+        <div className="flex flex-wrap items-end justify-center gap-4">
+          {opponents.map((o, i) => (
+            <div key={o.id} className={cn("flex flex-col items-center gap-1", fighting && "animate-clash-right")}>
+              <MonsterAvatar monsterClass={o.monsterClass} variant={o.avatarVariant} size="sm" label={o.name} className={cn("animate-bob", FLOAT_STAGGER[i % 3])} />
+              <span className="max-w-20 truncate text-xs text-muted">{o.name} · Lv. {o.level}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
+}
 
 export function BattlePreparationPage() {
   const { encounterId = "" } = useParams();
@@ -79,6 +112,8 @@ export function BattlePreparationPage() {
                   </p>
                 </Panel>
 
+                <Arena lineup={lineup} opponents={encounter.opponents} fighting={starting} />
+
                 <Panel title="Your lineup" action={<Link to={paths.team} className={linkCls}>Edit team</Link>}>
                   {lineup.length === 0 ? (
                     <p className="text-sm text-muted">Your team is empty. Add at least one monster in the team builder.</p>
@@ -113,8 +148,8 @@ export function BattlePreparationPage() {
                 {locked && <p role="alert" className="text-sm font-medium text-danger">This encounter is locked and cannot be started yet.</p>}
                 {startError && <p role="alert" className="text-sm font-medium text-danger">{startError}</p>}
                 <div className="flex flex-wrap gap-3">
-                  <button type="button" className={btnPrimary} disabled={!canStart} onClick={start}>
-                    <Swords className="h-4 w-4" aria-hidden /> {starting ? "Simulating battle…" : "Start battle"}
+                  <button type="button" className={cn(btnPrimary, canStart && "animate-glow")} disabled={!canStart} onClick={start}>
+                    <Swords className={cn("h-4 w-4", starting && "animate-swing")} aria-hidden /> {starting ? "Simulating battle…" : "Start battle"}
                   </button>
                   <Link to={paths.encounters} className={btnSecondary}>Cancel</Link>
                 </div>

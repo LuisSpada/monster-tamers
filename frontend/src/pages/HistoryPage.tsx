@@ -1,11 +1,14 @@
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Skull, Trophy } from "lucide-react";
 import { paths } from "../app/paths";
 import { useServices } from "../api/useServices";
 import { PageHeader } from "../components/common/PageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../components/game/AsyncState";
 import { PageContainer } from "../components/game/PageContainer";
+import { PageBanner } from "../components/game/fx/PageBanner";
+import { Reveal } from "../components/game/fx/Reveal";
+import { BANNER, stagger } from "../components/game/fx/fx";
 import { btnSecondary, chip, listCard } from "../components/game/styles";
 import { formatDateTime } from "../domain/format";
 import type { BattleOutcome } from "../domain/types";
@@ -41,8 +44,26 @@ export function HistoryPage() {
           ) : (
             (() => {
               const rows = state.data.filter((b) => filter === "all" || b.outcome === filter);
+              const wins = state.data.filter((b) => b.outcome === "victory").length;
+              const latest = state.data[0].outcome;
+              let streak = 0;
+              for (const b of state.data) {
+                if (b.outcome !== latest) break;
+                streak += 1;
+              }
               return (
                 <>
+                  <PageBanner
+                    image={BANNER.goal}
+                    tone={latest === "victory" ? "grass" : "danger"}
+                    eyebrow="Your record"
+                    tagline={`${wins} won, ${state.data.length - wins} lost`}
+                    chips={
+                      <span className={cn(chip, "bg-bg/70 backdrop-blur-sm", latest === "victory" ? "text-grass" : "text-danger")}>
+                        Current streak: {streak} {latest === "victory" ? (streak === 1 ? "win" : "wins") : streak === 1 ? "loss" : "losses"}
+                      </span>
+                    }
+                  />
                   <div role="group" aria-label="Filter by outcome" className="flex flex-wrap gap-2">
                     {FILTERS.map((f) => (
                       <button key={f.value} type="button" aria-pressed={filter === f.value} onClick={() => setFilter(f.value)}
@@ -54,14 +75,19 @@ export function HistoryPage() {
                   {rows.length === 0 ? (
                     <EmptyState title="No battles match this filter" action={<button type="button" className={btnSecondary} onClick={() => setFilter("all")}>Show all battles</button>} />
                   ) : (
-                    <ul className="space-y-3">
-                      {rows.map((b) => (
-                        <li key={b.id}>
+                    <ul className="relative space-y-3 before:absolute before:bottom-3 before:left-[5px] before:top-3 before:hidden before:w-0.5 before:bg-line sm:pl-8 sm:before:block">
+                      {rows.map((b, index) => (
+                        <Reveal as="li" key={b.id} delay={stagger(index)} className="relative">
+                          <span
+                            aria-hidden
+                            className={cn("absolute -left-8 top-1/2 hidden h-3 w-3 -translate-y-1/2 rounded-full ring-4 ring-bg sm:block", b.outcome === "victory" ? "bg-grass" : "bg-danger")}
+                          />
                           <Link
                             to={paths.historyDetail(b.id)}
-                            className={cn(listCard, "flex min-h-[78px] flex-wrap gap-3 p-4 sm:p-5")}
+                            className={cn(listCard, "flex min-h-[78px] flex-wrap gap-3 border-l-4 p-4 sm:p-5", b.outcome === "victory" ? "border-l-grass" : "border-l-danger")}
                           >
-                            <span className={cn("rounded-md border px-2 py-0.5 text-xs font-semibold", b.outcome === "victory" ? "border-grass/50 bg-grass/15 text-grass" : "border-danger/40 bg-danger/10 text-danger")}>
+                            <span className={cn("inline-flex h-fit items-center whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-semibold", b.outcome === "victory" ? "border-grass/50 bg-grass/15 text-grass" : "border-danger/40 bg-danger/10 text-danger")}>
+                              {b.outcome === "victory" ? <Trophy className="mr-1 inline h-3 w-3" aria-hidden /> : <Skull className="mr-1 inline h-3 w-3" aria-hidden />}
                               {b.outcome === "victory" ? "Victory" : "Defeat"}
                             </span>
                             <div className="min-w-0 flex-1">
@@ -75,7 +101,7 @@ export function HistoryPage() {
                             </div>
                             <ArrowRight className="h-4 w-4 text-accent" aria-hidden />
                           </Link>
-                        </li>
+                        </Reveal>
                       ))}
                     </ul>
                   )}

@@ -16,7 +16,10 @@ import { btnPrimary, btnSecondary, chip, linkCls } from "../components/game/styl
 import { CLASS_INFO, STAT_LABELS } from "../domain/classInfo";
 import { formatDateTime } from "../domain/format";
 import { MAX_LEVEL, MAX_TALENT, MIN_TALENT, STAT_KEYS, type Monster, type StatKey } from "../domain/types";
+import { Fireflies } from "../components/game/fx/Fireflies";
+import { CLASS_AURA, CLASS_TINT } from "../components/game/fx/fx";
 import { useAsync } from "../hooks/useAsync";
+import { cn } from "../lib/utils";
 
 export function MonsterDetailPage() {
   const { monsterId = "" } = useParams();
@@ -63,9 +66,16 @@ function MonsterDetailView({ monsterId }: { monsterId: string }) {
         {state.status === "error" && <ErrorState message={state.message} onRetry={reload} />}
         {state.status === "success" && monster && (
           <>
-            <Panel>
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                <MonsterAvatar monsterClass={monster.monsterClass} variant={monster.avatarVariant} size="lg" label={`${monster.name}, ${monster.monsterClass}`} />
+            <Panel className={cn("relative overflow-hidden bg-gradient-to-br to-card/90", CLASS_TINT[monster.monsterClass])}>
+              <Fireflies count={9} />
+              <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
+                <MonsterAvatar
+                  monsterClass={monster.monsterClass}
+                  variant={monster.avatarVariant}
+                  size="lg"
+                  label={`${monster.name}, ${monster.monsterClass}`}
+                  className={cn("animate-float", CLASS_AURA[monster.monsterClass])}
+                />
                 <div className="min-w-0 flex-1 space-y-3">
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="font-pixel text-2xl font-bold">{monster.name}</h2>
@@ -91,7 +101,7 @@ function MonsterDetailView({ monsterId }: { monsterId: string }) {
               </div>
             </Panel>
 
-            <div className="grid items-stretch gap-5 lg:grid-cols-2">
+            <div className="grid animate-rise items-stretch gap-5 [animation-delay:120ms] lg:grid-cols-2">
               <Panel title="Progression">
                 {monster.xpToNext === null ? (
                   <p className="text-sm">This monster has reached the maximum level ({MAX_LEVEL}). <strong>Max level</strong></p>
@@ -114,7 +124,7 @@ function MonsterDetailView({ monsterId }: { monsterId: string }) {
               </Panel>
             </div>
 
-            <div className="grid items-stretch gap-5 lg:grid-cols-2">
+            <div className="grid animate-rise items-stretch gap-5 [animation-delay:200ms] lg:grid-cols-2">
               <Panel title="Skill">
                 <p className="font-medium">{monster.skill.name}</p>
                 <p className="mt-1 text-sm text-muted">{monster.skill.description}</p>
@@ -125,11 +135,11 @@ function MonsterDetailView({ monsterId }: { monsterId: string }) {
               </Panel>
             </div>
 
-            <Panel title="Level up">
+            <Panel title="Level up" className={cn("[animation-delay:260ms]", monster.pendingPoints > 0 ? "animate-glow border-gold/60" : "animate-rise")}>
               {monster.pendingPoints > 0 ? (
                 <>
                   <p className="mb-3 flex items-center gap-2 text-sm">
-                    <Sparkles className="h-4 w-4 text-gold" aria-hidden />
+                    <Sparkles className="h-4 w-4 animate-wobble text-gold" aria-hidden />
                     You have {monster.pendingPoints} unspent stat {monster.pendingPoints === 1 ? "point" : "points"}. Choose a stat to improve:
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -144,13 +154,13 @@ function MonsterDetailView({ monsterId }: { monsterId: string }) {
                 <p className="text-sm text-muted">No unspent stat points. Earn experience in encounters to level up.</p>
               )}
               {notice && (
-                <p role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 text-sm font-medium ${notice.kind === "error" ? "text-danger" : "text-grass"}`}>
+                <p key={notice.text} role={notice.kind === "error" ? "alert" : "status"} className={`mt-3 animate-pop text-sm font-medium ${notice.kind === "error" ? "text-danger" : "text-grass"}`}>
                   {notice.text}
                 </p>
               )}
             </Panel>
 
-            <Panel title="Upgrade history">
+            <Panel title="Upgrade history" className="animate-rise [animation-delay:320ms]">
               {monster.upgrades.length === 0 ? (
                 <EmptyState title="No upgrades yet" description="Spend stat points to see your upgrades here." />
               ) : (

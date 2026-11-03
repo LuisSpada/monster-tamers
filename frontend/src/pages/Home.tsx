@@ -10,6 +10,8 @@ import { useAsync } from "@/hooks/useAsync";
 import { CLASS_INFO } from "@/domain/classInfo";
 import { MAX_TEAM_SIZE, type Encounter, type Monster, type MonsterClass, type PlayerProgress } from "@/domain/types";
 import { surfaceCard } from "@/components/game/styles";
+import { Fireflies } from "@/components/game/fx/Fireflies";
+import { FLOAT_STAGGER } from "@/components/game/fx/fx";
 
 const activity = [
   { icon: "act-level", title: "Fierce Fox reached level 4", sub: "1 stat point to spend", time: "2h ago" },
@@ -54,6 +56,7 @@ function PrimaryButton({ to, children, className }: { to: string; children: Reac
 function Hero({ playerName }: { playerName: string }) {
   return (
     <SceneImage src="/assets/hero-banner.png" className="h-[176px] bg-[#0a1830] [&>img]:object-[left_center]">
+      <Fireflies count={10} />
       <div className="relative z-10 flex h-full flex-col justify-center px-10 sm:px-[76px]">
         <h1 className="font-pixel text-[34px] font-bold leading-tight text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]">
           Welcome back, <span className="text-gold">{playerName}!</span>
@@ -74,7 +77,7 @@ function GoalCard() {
         <p className="mt-2 max-w-[330px] text-sm text-white/85">
           Develop your monsters and defeat the final boss. The Misty Forest awaits...
         </p>
-        <PrimaryButton to="/encounters" className="mt-5 w-fit px-7 py-3">Go to Encounters</PrimaryButton>
+        <PrimaryButton to="/encounters" className="mt-5 w-fit animate-glow px-7 py-3">Go to Encounters</PrimaryButton>
       </div>
     </SceneImage>
   );
@@ -99,7 +102,7 @@ function PlayerCard({ progress }: { progress: PlayerProgress }) {
             <span className="text-xs text-muted">{progress.encountersCleared} / {progress.encountersTotal} cleared</span>
           </div>
           <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-inset">
-            <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
+            <div className="grow-x h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
           </div>
         </div>
       </div>
@@ -143,7 +146,7 @@ function TeamCard({ team }: { team: Monster[] }) {
               </span>
             )}
             <div className="flex flex-1 items-end justify-center pt-4">
-              <MonsterAvatar monsterClass={m.monsterClass} variant={m.avatarVariant} size="md" label={m.name} />
+              <MonsterAvatar monsterClass={m.monsterClass} variant={m.avatarVariant} size="md" label={m.name} className={cn("animate-float", FLOAT_STAGGER[i % 3])} />
             </div>
             <div className="mt-2 flex items-center justify-between gap-2">
               <span className="truncate font-pixel text-base font-semibold">{m.name}</span>
@@ -154,7 +157,7 @@ function TeamCard({ team }: { team: Monster[] }) {
               <span>{m.xpToNext === null ? "Max level" : `${m.xp} / ${m.xpToNext} XP`}</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg/60">
-              <div className="h-full rounded-full bg-grass" style={{ width: `${m.xpToNext === null ? 100 : Math.round((m.xp / m.xpToNext) * 100)}%` }} />
+              <div className="grow-x h-full rounded-full bg-grass" style={{ width: `${m.xpToNext === null ? 100 : Math.round((m.xp / m.xpToNext) * 100)}%` }} />
             </div>
           </div>
         ))}
@@ -189,13 +192,13 @@ function NextEncounterCard({ encounter, total }: { encounter: Encounter; total: 
             {e.rewardClasses.map((c) => <ClassBadge key={c} name={c} />)}
           </div>
           <div className="mt-2 flex gap-2">
-            {e.opponents.map((opponent) => (
-              <MonsterAvatar key={opponent.id} monsterClass={opponent.monsterClass} variant={opponent.avatarVariant} size="sm" label={opponent.name} />
+            {e.opponents.map((opponent, i) => (
+              <MonsterAvatar key={opponent.id} monsterClass={opponent.monsterClass} variant={opponent.avatarVariant} size="sm" label={opponent.name} className={cn("animate-bob", FLOAT_STAGGER[i % 3])} />
             ))}
           </div>
         </div>
       </div>
-      <PrimaryButton to="/encounters" className="mt-3 w-full">Prepare for Battle</PrimaryButton>
+      <PrimaryButton to="/encounters" className="mt-3 w-full animate-glow">Prepare for Battle</PrimaryButton>
     </Card>
   );
 }
@@ -284,15 +287,15 @@ export default function Home() {
     <div className="relative isolate overflow-hidden">
       <Hero playerName={progress.playerName} />
       <div className="w-full space-y-6 px-4 pb-[130px] pt-6 lg:px-6">
-        <div className="grid gap-5 xl:grid-cols-[1.66fr_1fr]">
+        <div className="grid animate-rise gap-6 [animation-delay:60ms] xl:grid-cols-[1.7fr_1fr]">
           <GoalCard />
           <PlayerCard progress={progress} />
         </div>
-        <div className="grid gap-5 xl:grid-cols-[1.66fr_1fr]">
+        <div className="grid animate-rise gap-6 [animation-delay:160ms] xl:grid-cols-[1.7fr_1fr]">
           <TeamCard team={team} />
           {nextEncounter ? <NextEncounterCard encounter={nextEncounter} total={progress.encountersTotal} /> : <Card className="p-4">No encounters available.</Card>}
         </div>
-        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-[1fr_1.15fr_1.1fr]">
+        <div className="grid animate-rise gap-6 [animation-delay:260ms] lg:grid-cols-2 xl:grid-cols-[1fr_1.2fr_1.15fr]">
           <RecentActivityCard />
           <FinalBossCard defeated={progress.finalBossDefeated} />
           <TipCard />

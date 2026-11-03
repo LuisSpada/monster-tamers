@@ -5,6 +5,8 @@ import { PageHeader } from "../components/common/PageHeader";
 import { BattleReport } from "../components/game/BattleReport";
 import { ErrorState, LoadingState } from "../components/game/AsyncState";
 import { PageContainer } from "../components/game/PageContainer";
+import { BattleSplash } from "../components/game/fx/BattleSplash";
+import { Confetti } from "../components/game/fx/Confetti";
 import { useAsync } from "../hooks/useAsync";
 
 export function BattleResultPage() {
@@ -19,7 +21,13 @@ export function BattleResultPage() {
       <PageContainer>
         {state.status === "loading" && <LoadingState label="Loading battle result…" />}
         {state.status === "error" && <ErrorState message={state.message} onRetry={reload} />}
-        {state.status === "success" && <BattleReport result={state.data} variant="result" />}
+        {state.status === "success" && (
+          <>
+            {state.data.outcome === "victory" && <Confetti />}
+            <BattleSplash outcome={state.data.outcome} />
+            <BattleReport result={state.data} variant="result" />
+          </>
+        )}
       </PageContainer>
     </>
   );
