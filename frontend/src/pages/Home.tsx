@@ -1,9 +1,15 @@
 import { Link } from "react-router-dom";
+import { useCallback } from "react";
 import { ArrowRight, Check, Plus } from "lucide-react";
 import SceneImage from "@/components/SceneImage";
 import { cn } from "@/lib/utils";
-import { CLASS_INFO, MAX_TEAM_SIZE, type ClassName } from "@/types/game";
-import { nextEncounter, opponentSprites, summary, team } from "@/mock/data";
+import { useServices } from "@/api/useServices";
+import { ErrorState, LoadingState } from "@/components/game/AsyncState";
+import { MonsterAvatar } from "@/components/game/MonsterAvatar";
+import { useAsync } from "@/hooks/useAsync";
+import { CLASS_INFO } from "@/domain/classInfo";
+import { MAX_TEAM_SIZE, type Encounter, type Monster, type MonsterClass, type PlayerProgress } from "@/domain/types";
+import { surfaceCard } from "@/components/game/styles";
 
 const activity = [
   { icon: "act-level", title: "Fierce Fox reached level 4", sub: "1 stat point to spend", time: "2h ago" },
@@ -15,11 +21,11 @@ const Px = ({ name, className }: { name: string; className?: string }) => (
   <img src={`/assets/${name}.png`} alt="" className={cn("pixelated object-contain", className)} />
 );
 
-function ClassBadge({ name, label, className }: { name: ClassName; label?: boolean; className?: string }) {
+function ClassBadge({ name, label, className }: { name: MonsterClass; label?: boolean; className?: string }) {
   const c = CLASS_INFO[name];
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)} title={`${name} – ${c.role}`}>
-      <span className={cn("grid h-5 w-5 place-items-center rounded font-pixel text-xs font-bold text-white", c.color)}>
+      <span className={cn("grid h-5 w-5 place-items-center rounded font-pixel text-xs font-bold text-white", c.badgeClass)}>
         {c.letter}
       </span>
       {label && <span className="text-xs text-muted">{name}</span>}
@@ -29,7 +35,7 @@ function ClassBadge({ name, label, className }: { name: ClassName; label?: boole
 
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <section className={cn("rounded-xl border border-line bg-card/90 shadow-lg shadow-black/10 backdrop-blur-sm", className)}>
+    <section className={cn(surfaceCard, className)}>
       {children}
     </section>
   );
@@ -45,12 +51,12 @@ function PrimaryButton({ to, children, className }: { to: string; children: Reac
   );
 }
 
-function Hero() {
+function Hero({ playerName }: { playerName: string }) {
   return (
     <SceneImage src="/assets/hero-banner.png" className="h-[176px] bg-[#0a1830] [&>img]:object-[left_center]">
       <div className="relative z-10 flex h-full flex-col justify-center px-10 sm:px-[76px]">
         <h1 className="font-pixel text-[34px] font-bold leading-tight text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]">
-          Welcome back, <span className="text-gold">{summary.playerName}!</span>
+          Welcome back, <span className="text-gold">{playerName}!</span>
         </h1>
         <p className="mt-2 text-[15px] text-white/85 drop-shadow">“Generate. Train. Battle. Defeat the final boss.”</p>
       </div>
@@ -74,23 +80,23 @@ function GoalCard() {
   );
 }
 
-function PlayerCard() {
-  const pct = Math.round((summary.encountersCleared / summary.encountersTotal) * 100);
+function PlayerCard({ progress }: { progress: PlayerProgress }) {
+  const pct = Math.round((progress.encountersCleared / progress.encountersTotal) * 100);
   const tiles = [
-    { label: "Collection", value: String(summary.collectionSize) },
-    { label: "Team", value: `${summary.teamSize} / ${MAX_TEAM_SIZE}` },
-    { label: "Stat points", value: String(summary.pendingPoints) },
-    { label: "Final boss", value: summary.finalBossDefeated ? "Defeated" : "Locked" },
+    { label: "Collection", value: String(progress.collectionSize) },
+    { label: "Team", value: `${progress.teamSize} / ${MAX_TEAM_SIZE}` },
+    { label: "Stat points", value: String(progress.pendingPoints) },
+    { label: "Final boss", value: progress.finalBossDefeated ? "Defeated" : "Locked" },
   ];
   return (
     <Card className="p-5">
       <div className="flex items-center gap-4">
         <img src="/assets/avatar-card.png" alt="" className="pixelated h-[68px] w-[68px] rounded-lg ring-1 ring-line" />
         <div className="min-w-0 flex-1">
-          <div className="font-pixel text-xl font-bold">{summary.playerName}</div>
+          <div className="font-pixel text-xl font-bold">{progress.playerName}</div>
           <div className="mt-1 flex items-baseline justify-between">
             <span className="text-sm text-muted">Encounter progress</span>
-            <span className="text-xs text-muted">{summary.encountersCleared} / {summary.encountersTotal} cleared</span>
+            <span className="text-xs text-muted">{progress.encountersCleared} / {progress.encountersTotal} cleared</span>
           </div>
           <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-inset">
             <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
@@ -109,8 +115,8 @@ function PlayerCard() {
   );
 }
 
-function TeamCard() {
-  const empty = Array.from({ length: MAX_TEAM_SIZE - team.length });
+function TeamCard({ team }: { team: Monster[] }) {
+  const empty = Array.from({ length: Math.max(0, MAX_TEAM_SIZE - team.length) });
   const valid = team.length >= 1 && team.length <= MAX_TEAM_SIZE;
   return (
     <Card className="flex flex-col p-4">
@@ -137,18 +143,18 @@ function TeamCard() {
               </span>
             )}
             <div className="flex flex-1 items-end justify-center pt-4">
-              <Px name={m.image} className="h-[78px] w-auto max-w-full" />
+              <MonsterAvatar monsterClass={m.monsterClass} variant={m.avatarVariant} size="md" label={m.name} />
             </div>
             <div className="mt-2 flex items-center justify-between gap-2">
               <span className="truncate font-pixel text-base font-semibold">{m.name}</span>
-              <ClassBadge name={m.className} />
+              <ClassBadge name={m.monsterClass} />
             </div>
             <div className="flex items-center justify-between text-xs text-muted">
               <span>Lv. {m.level}</span>
-              <span>{m.xp} / {m.xpToNext} XP</span>
+              <span>{m.xpToNext === null ? "Max level" : `${m.xp} / ${m.xpToNext} XP`}</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg/60">
-              <div className="h-full rounded-full bg-grass" style={{ width: `${Math.round((m.xp / m.xpToNext) * 100)}%` }} />
+              <div className="h-full rounded-full bg-grass" style={{ width: `${m.xpToNext === null ? 100 : Math.round((m.xp / m.xpToNext) * 100)}%` }} />
             </div>
           </div>
         ))}
@@ -165,8 +171,8 @@ function TeamCard() {
   );
 }
 
-function NextEncounterCard() {
-  const e = nextEncounter;
+function NextEncounterCard({ encounter, total }: { encounter: Encounter; total: number }) {
+  const e = encounter;
   return (
     <Card className="p-4">
       <h3 className="mb-3 font-pixel text-lg font-semibold">Next Encounter</h3>
@@ -174,7 +180,7 @@ function NextEncounterCard() {
         <SceneImage src="/assets/misty-forest.png" className="h-[150px] w-[130px] shrink-0 rounded-md bg-[#2a6b4a]" />
         <div className="min-w-0 flex-1">
           <div className="font-pixel text-lg font-semibold">{e.name}</div>
-          <div className="text-sm text-muted">Encounter {e.order} of {summary.encountersTotal}</div>
+          <div className="text-sm text-muted">Encounter {e.order} of {total}</div>
           <span className="mt-2 inline-block rounded-md border border-line bg-inset px-2.5 py-1 text-xs text-muted">
             Egg chance {e.eggChance}%
           </span>
@@ -183,10 +189,8 @@ function NextEncounterCard() {
             {e.rewardClasses.map((c) => <ClassBadge key={c} name={c} />)}
           </div>
           <div className="mt-2 flex gap-2">
-            {opponentSprites.map((m) => (
-              <div key={m} className="grid h-[44px] w-[44px] place-items-center rounded-md border border-line bg-inset">
-                <Px name={m} className="h-8 w-8" />
-              </div>
+            {e.opponents.map((opponent) => (
+              <MonsterAvatar key={opponent.id} monsterClass={opponent.monsterClass} variant={opponent.avatarVariant} size="sm" label={opponent.name} />
             ))}
           </div>
         </div>
@@ -216,7 +220,7 @@ function RecentActivityCard() {
   );
 }
 
-function FinalBossCard() {
+function FinalBossCard({ defeated }: { defeated: boolean }) {
   return (
     <Card className="p-4">
       <h3 className="mb-3 font-pixel text-base font-semibold">Final Boss</h3>
@@ -225,7 +229,7 @@ function FinalBossCard() {
         <div className="min-w-0">
           <span className="rounded bg-violet-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">Objective</span>
           <div className="mt-1.5 font-pixel text-base font-semibold">
-            {summary.finalBossDefeated ? "Defeated" : "Not yet defeated"}
+            {defeated ? "Defeated" : "Not yet defeated"}
           </div>
           <p className="mt-1 text-sm leading-snug text-muted">
             Clear the encounters, grow your team and take on the final boss. It never drops an egg.
@@ -254,21 +258,43 @@ function TipCard() {
 }
 
 export default function Home() {
+  const { players, monsters, teams, encounters } = useServices();
+  const load = useCallback(async () => {
+    const [progress, monsterList, teamState, encounterList] = await Promise.all([
+      players.getProgress(),
+      monsters.listMonsters(),
+      teams.getTeam(),
+      encounters.listEncounters(),
+    ]);
+    const byId = new Map(monsterList.map((monster) => [monster.id, monster]));
+    const team = teamState.monsterIds.flatMap((id) => {
+      const monster = byId.get(id);
+      return monster ? [monster] : [];
+    });
+    const nextEncounter = encounterList.find((encounter) => encounter.status === "available") ?? encounterList[0];
+    return { progress, team, nextEncounter };
+  }, [players, monsters, teams, encounters]);
+  const { state, reload } = useAsync(load);
+
+  if (state.status === "loading") return <LoadingState label="Loading your dashboard…" />;
+  if (state.status === "error") return <ErrorState message={state.message} onRetry={reload} />;
+  const { progress, team, nextEncounter } = state.data;
+
   return (
     <div className="relative isolate overflow-hidden">
-      <Hero />
+      <Hero playerName={progress.playerName} />
       <div className="w-full space-y-6 px-4 pb-[130px] pt-6 lg:px-6">
         <div className="grid gap-5 xl:grid-cols-[1.66fr_1fr]">
           <GoalCard />
-          <PlayerCard />
+          <PlayerCard progress={progress} />
         </div>
         <div className="grid gap-5 xl:grid-cols-[1.66fr_1fr]">
-          <TeamCard />
-          <NextEncounterCard />
+          <TeamCard team={team} />
+          {nextEncounter ? <NextEncounterCard encounter={nextEncounter} total={progress.encountersTotal} /> : <Card className="p-4">No encounters available.</Card>}
         </div>
         <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-[1fr_1.15fr_1.1fr]">
           <RecentActivityCard />
-          <FinalBossCard />
+          <FinalBossCard defeated={progress.finalBossDefeated} />
           <TipCard />
         </div>
       </div>

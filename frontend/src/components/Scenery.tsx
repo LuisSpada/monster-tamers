@@ -1,26 +1,16 @@
-import { cn } from "@/lib/utils";
-
-/**
- * Komplett pixel art-scene (natthimmel, fjell, innsjø, palmer og jungel) som dekker hele flaten.
- * Et tema-farget lag oppå sørger for lesbarhet i både dark og light mode.
- */
 export function SceneBackground({
-  overlay = "bg-bg/80 dark:bg-bg/20",
-  position = "center bottom",
+  overlay = "",
   className,
-}: { overlay?: string; position?: string; className?: string }) {
+}: { overlay?: string; className?: string }) {
   return (
-    <div aria-hidden className={cn("pointer-events-none absolute inset-0 -z-20", className)}>
-      <div className="absolute inset-0"
-        style={{ backgroundImage: "url(/assets/scene.png)", backgroundSize: "cover", backgroundPosition: position, imageRendering: "pixelated" }} />
-      <div className={cn("absolute inset-0", overlay)} />
+    <div aria-hidden className={`pointer-events-none absolute inset-0 -z-20 ${className ?? ""}`}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,color-mix(in_srgb,var(--accent)_18%,transparent),transparent_35%),radial-gradient(circle_at_85%_85%,rgba(99,102,241,0.12),transparent_35%)]" />
+      <div className="atmosphere-grid absolute inset-0 opacity-40" />
+      <div className={`absolute inset-0 ${overlay}`} />
     </div>
   );
 }
 
-/** Bakgrunn for hovedområdet: scenen og vann/and nederst. */
 export default function Scenery() {
-  return (
-    <SceneBackground />
-  );
+  return <SceneBackground className="-z-10" />;
 }
