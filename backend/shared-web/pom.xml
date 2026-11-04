@@ -23,5 +23,11 @@
             <artifactId>spring-security-web</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Only services that bring springdoc get the API docs setup. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 </project>
