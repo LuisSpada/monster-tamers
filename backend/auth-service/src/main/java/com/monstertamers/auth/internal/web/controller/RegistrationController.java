@@ -1,6 +1,7 @@
 package com.monstertamers.auth.internal.web.controller;
 
 import com.monstertamers.auth.internal.application.RegistrationService;
+import com.monstertamers.auth.internal.web.constant.WebConstants;
 import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Registration")
 @RestController
-@RequestMapping("/api/registrations")
+@RequestMapping(WebConstants.BASE_PATH + "/registrations")
 @RequiredArgsConstructor
 public class RegistrationController {
 

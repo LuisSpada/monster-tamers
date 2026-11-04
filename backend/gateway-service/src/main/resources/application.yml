@@ -10,8 +10,6 @@ spring:
               uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
               predicates:
                 - Path=/api/auth/**
-              filters:
-                - RewritePath=/api/auth/(?<segment>.*), /api/$\{segment}
             - id: player-service
               uri: ${PLAYER_SERVICE_URL:http://player-service:8082}
               predicates:

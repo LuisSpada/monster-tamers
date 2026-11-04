@@ -37,16 +37,6 @@ class GatewayRoutesTests {
     }
 
     @Test
-    void authRouteRewritesOnlyTheGatewayPrefix() {
-        Route route = routeLocator.getRoutes()
-                .filter(candidate -> candidate.getId().equals("auth-service"))
-                .blockFirst();
-
-        assertThat(route).isNotNull();
-        assertThat(route.getFilters()).anyMatch(filter -> filter.toString().contains("/api/auth"));
-    }
-
-    @Test
     void simulatorHasNoPublicRoute() {
         assertThat(routeLocator.getRoutes().map(Route::getId).collectList().block())
                 .doesNotContain("simulator-service");

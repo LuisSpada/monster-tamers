@@ -1,6 +1,7 @@
 package com.monstertamers.auth.internal.web.controller;
 
 import com.monstertamers.auth.internal.application.LoginService;
+import com.monstertamers.auth.internal.web.constant.WebConstants;
 import com.monstertamers.auth.internal.web.dto.request.LoginRequest;
 import com.monstertamers.auth.internal.web.dto.response.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Login")
 @RestController
-@RequestMapping("/api/login")
+@RequestMapping(WebConstants.BASE_PATH + "/login")
 @RequiredArgsConstructor
 public class LoginController {
 
