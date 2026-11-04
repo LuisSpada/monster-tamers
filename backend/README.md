@@ -102,6 +102,7 @@ that profile it does not start unless `JWT_SECRET` is set.
 | `encounter-service` | Encounter bounded context |
 | `simulator-service` | Simulator bounded context |
 | `shared-contracts` | Framework-light contracts shared by services |
+| `shared-web` | Spring MVC infrastructure shared by services |
 
 Service modules do not depend on another service's implementation module.
 Inter-service HTTP communication, gateway routing, separate databases, TLS and

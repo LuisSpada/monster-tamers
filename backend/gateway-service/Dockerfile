@@ -4,6 +4,7 @@ WORKDIR /workspace
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 COPY shared-contracts/pom.xml shared-contracts/pom.xml
+COPY shared-web/pom.xml shared-web/pom.xml
 COPY gateway-service/pom.xml gateway-service/pom.xml
 COPY auth-service/pom.xml auth-service/pom.xml
 COPY player-service/pom.xml player-service/pom.xml
