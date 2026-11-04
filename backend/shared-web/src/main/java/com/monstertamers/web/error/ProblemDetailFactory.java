@@ -1,4 +1,4 @@
-package com.monstertamers.auth.error;
+package com.monstertamers.web.error;
 
 import org.springframework.http.ProblemDetail;
 

@@ -1,6 +1,6 @@
 package com.monstertamers.auth.config;
 
-import com.monstertamers.auth.security.SecurityErrorHandler;
+import com.monstertamers.web.error.SecurityErrorHandler;
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

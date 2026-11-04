@@ -18,6 +18,7 @@
 
     <modules>
         <module>shared-contracts</module>
+        <module>shared-web</module>
         <module>gateway-service</module>
         <module>auth-service</module>
         <module>player-service</module>
@@ -48,6 +49,11 @@
             <dependency>
                 <groupId>com.monstertamers</groupId>
                 <artifactId>shared-contracts</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.monstertamers</groupId>
+                <artifactId>shared-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

@@ -1,4 +1,4 @@
-package com.monstertamers.auth.error;
+package com.monstertamers.web.error;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,16 +33,6 @@ import org.springframework.web.util.WebUtils;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    @ExceptionHandler(AuthenticationException.class)
-    public ProblemDetail handleAuthentication(AuthenticationException ex) {
-        return ProblemDetailFactory.create(CommonErrorCode.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
-        return ProblemDetailFactory.create(CommonErrorCode.FORBIDDEN);
-    }
 
     /** Anything unexpected: logged with the stack trace, the client gets no internals. */
     @ExceptionHandler(Exception.class)
