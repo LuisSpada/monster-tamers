@@ -1,8 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Bell, ChevronDown, LogOut, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { notifications, summary } from "@/mock/data";
+import { useServices } from "@/api/useServices";
+import { useAsync } from "@/hooks/useAsync";
+
+const notifications = [
+  { id: "level", icon: "act-level", title: "Monster progress updated", sub: "Review your collection", time: "Recently", unread: true },
+  { id: "battle", icon: "act-battle", title: "Battle history is available", sub: "Review your latest encounter", time: "Recently", unread: true },
+];
 
 /** Lukker en meny ved klikk utenfor eller Escape. */
 function useMenu() {
@@ -69,6 +75,9 @@ export function NotificationsMenu() {
 
 export function UserMenu() {
   const { open, setOpen, ref } = useMenu();
+  const { players } = useServices();
+  const loadProgress = useCallback(() => players.getProgress(), [players]);
+  const { state } = useAsync(loadProgress);
   const item = "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-inset";
   return (
     <div ref={ref} className="relative">
@@ -76,7 +85,7 @@ export function UserMenu() {
         onClick={() => setOpen((o) => !o)} className="flex items-center gap-3 rounded-lg py-1 pl-1 pr-2 hover:bg-inset">
         <img src="/assets/avatar-top.png" alt="" className="pixelated h-11 w-11 rounded-full ring-1 ring-line" />
         <div className="hidden text-left leading-tight sm:block">
-          <div className="text-sm font-semibold">{summary.playerName}</div>
+          <div className="text-sm font-semibold">{state.status === "success" ? state.data.playerName : "Tamer"}</div>
           <div className="text-xs text-muted">Player</div>
         </div>
         <ChevronDown className={cn("h-4 w-4 text-muted transition-transform", open && "rotate-180")} />

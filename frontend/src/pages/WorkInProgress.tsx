@@ -1,8 +1,10 @@
+import { Fireflies } from "@/components/game/fx/Fireflies";
+
 function HammerIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="mx-auto mb-4 h-10 w-10 text-gold"
+      className="mx-auto mb-4 h-12 w-12 origin-bottom-left animate-swing text-gold"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -23,7 +25,8 @@ export default function WorkInProgress({ title, items = [] }: { title: string; i
   return (
     <div className="relative isolate min-h-full overflow-hidden">
       <div className="flex min-h-[68vh] w-full items-center justify-center p-4 pb-[130px] lg:px-6">
-        <div className="w-full max-w-6xl rounded-xl border border-line bg-card/90 px-8 py-16 text-center shadow-lg shadow-black/10 backdrop-blur-sm">
+        <div className="relative w-full max-w-6xl animate-rise overflow-hidden rounded-xl border border-line bg-card/90 px-8 py-16 text-center shadow-lg shadow-black/10 backdrop-blur-sm">
+          <Fireflies count={12} />
           <HammerIcon />
           <h1 className="font-pixel text-3xl font-bold">{title}</h1>
           <p className="mt-2 text-muted">Work in progress – this page is coming soon.</p>
