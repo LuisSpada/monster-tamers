@@ -5,6 +5,7 @@ import com.monstertamers.auth.internal.web.constant.WebConstants;
 import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
+import com.monstertamers.web.docs.PublicEndpoint;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ public class RegistrationController {
 
     private final RegistrationService registrationService;
 
+    @PublicEndpoint
     @PostMapping
     @Operation(summary = "Start registration, sends a confirmation code to the email")
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -33,6 +35,7 @@ public class RegistrationController {
         return registrationService.register(request);
     }
 
+    @PublicEndpoint
     @PostMapping("/{registrationId}/confirmation")
     @Operation(summary = "Confirm registration with the code, creates the account")
     @ResponseStatus(HttpStatus.CREATED)
