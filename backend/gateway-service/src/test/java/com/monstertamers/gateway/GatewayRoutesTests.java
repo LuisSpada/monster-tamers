@@ -37,6 +37,16 @@ class GatewayRoutesTests {
     }
 
     @Test
+    void authRouteKeepsPath() {
+        Route route = routeLocator.getRoutes()
+                .filter(candidate -> candidate.getId().equals("auth-service"))
+                .blockFirst();
+
+        assertThat(route).isNotNull();
+        assertThat(route.getFilters()).isEmpty();
+    }
+
+    @Test
     void simulatorHasNoPublicRoute() {
         assertThat(routeLocator.getRoutes().map(Route::getId).collectList().block())
                 .doesNotContain("simulator-service");
