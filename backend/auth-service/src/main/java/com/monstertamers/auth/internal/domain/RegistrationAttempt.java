@@ -33,4 +33,7 @@ public class RegistrationAttempt {
 
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
+
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts;
 }

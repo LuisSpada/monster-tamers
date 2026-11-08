@@ -15,6 +15,9 @@ import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
 import com.monstertamers.auth.error.ApiException;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +61,9 @@ class RegistrationServiceTest {
 
     @Mock
     private AccountService accountService;
+
+    @Mock
+    private RegistrationAttemptCounterService registrationAttemptCounterService;
 
     @InjectMocks
     private RegistrationService registrationService;
@@ -118,6 +124,17 @@ class RegistrationServiceTest {
     @Nested
     class Confirm {
 
+        private RegistrationAttempt attempt() {
+            RegistrationAttempt attempt = new RegistrationAttempt();
+            attempt.setId(UUID.randomUUID());
+            attempt.setEmail(EMAIL);
+            attempt.setPassword("password-hash");
+            attempt.setCode("code-hash");
+            attempt.setCreatedAt(Instant.now());
+            attempt.setFailedAttempts(0);
+            return attempt;
+        }
+
         @Test
         void unknownRegistration_rejected() {
             // given
@@ -136,13 +153,11 @@ class RegistrationServiceTest {
         }
 
         @Test
-        void wrongCode_rejected() {
+        void wrongCode_rejected_and_counter_incremented() {
             // given
-            RegistrationAttempt attempt = new RegistrationAttempt();
-            attempt.setId(UUID.randomUUID());
-            attempt.setCode("code-hash");
-
+            RegistrationAttempt attempt = attempt();
             ConfirmationRequest request = new ConfirmationRequest("000000");
+            
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("000000", "code-hash")).thenReturn(false);
 
@@ -154,15 +169,14 @@ class RegistrationServiceTest {
                 assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
                 assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.confirmation_code_invalid");
             });
+
+            verify(registrationAttemptCounterService).incrementFailedAttempts(attempt);
         }
 
         @Test
         void takenEmail_rejected() {
             // given
-            RegistrationAttempt attempt = new RegistrationAttempt();
-            attempt.setId(UUID.randomUUID());
-            attempt.setEmail(EMAIL);
-            attempt.setCode("code-hash");
+            RegistrationAttempt attempt = attempt();
 
             ConfirmationRequest request = new ConfirmationRequest("123456");
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
@@ -183,11 +197,7 @@ class RegistrationServiceTest {
         @Test
         void validCode_succeeds() {
             // given
-            RegistrationAttempt attempt = new RegistrationAttempt();
-            attempt.setId(UUID.randomUUID());
-            attempt.setEmail(EMAIL);
-            attempt.setPassword("password-hash");
-            attempt.setCode("code-hash");
+            RegistrationAttempt attempt = attempt();
 
             ConfirmationRequest request = new ConfirmationRequest("123456");
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
@@ -199,6 +209,85 @@ class RegistrationServiceTest {
             // then
             verify(accountService).create(EMAIL, "password-hash");
             verify(registrationAttemptRepository).delete(attempt);
+        }
+
+        @Test
+        void expiredCode_rejected() {
+            // given
+            RegistrationAttempt attempt = attempt();
+            attempt.setCreatedAt(Instant.now().minus(16, ChronoUnit.MINUTES));
+
+            when(registrationAttemptRepository.findById(attempt.getId()))
+                    .thenReturn(Optional.of(attempt));
+            
+            //when
+            Throwable thrown = catchThrowable(() ->
+                    registrationService.confirm(
+                            attempt.getId(),
+                            new ConfirmationRequest("123456")));
+
+            //then
+            assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+                assertThat(ex.getBody().getProperties())
+                        .containsEntry("code", "auth.confirmation_code_expired");
+            });
+
+            verifyNoInteractions(passwordEncoder, accountService);
+        }
+
+        @Test
+        void five_failed_attempts_correctCode_rejected() {
+            //given
+            RegistrationAttempt attempt = attempt();
+            attempt.setFailedAttempts(5);
+
+            when(registrationAttemptRepository.findById(attempt.getId()))
+                    .thenReturn(Optional.of(attempt));
+            
+            //when
+            Throwable thrown = catchThrowable(() ->
+                    registrationService.confirm(
+                            attempt.getId(),
+                            new ConfirmationRequest("123456")));
+
+            //then
+            assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+                assertThat(ex.getBody().getProperties())
+                        .containsEntry(
+                                "code",
+                                "auth.confirmation_attempts_exceeded");
+            });
+
+            verifyNoInteractions(passwordEncoder, accountService);
+        }
+
+        @Test 
+        void correctCode_after_five_failed_attempts_rejected(){
+            //given
+            RegistrationAttempt attempt = attempt();
+            attempt.setFailedAttempts(5);
+
+            //when
+            when(registrationAttemptRepository.findById(attempt.getId()))
+                    .thenReturn(Optional.of(attempt));
+
+            Throwable thrown = catchThrowable(() ->
+                    registrationService.confirm(
+                            attempt.getId(),
+                            new ConfirmationRequest("123456")));
+            
+            //then
+             assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+                assertThat(ex.getBody().getProperties())
+                        .containsEntry(
+                                "code",
+                                "auth.confirmation_attempts_exceeded");
+            });
+
+            verifyNoInteractions(passwordEncoder, accountService);
         }
     }
 }
