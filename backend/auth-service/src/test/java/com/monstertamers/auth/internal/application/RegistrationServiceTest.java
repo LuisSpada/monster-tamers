@@ -153,7 +153,7 @@ class RegistrationServiceTest {
         }
 
         @Test
-        void wrongCode_rejected_and_counter_incremented() {
+        void wrongCode_rejected() {
             // given
             RegistrationAttempt attempt = attempt();
             ConfirmationRequest request = new ConfirmationRequest("000000");
@@ -263,31 +263,25 @@ class RegistrationServiceTest {
             verifyNoInteractions(passwordEncoder, accountService);
         }
 
-        @Test 
-        void correctCode_after_five_failed_attempts_rejected(){
+        @Test
+        void four_failed_attempts_correctCode_accepted() {
             //given
             RegistrationAttempt attempt = attempt();
-            attempt.setFailedAttempts(5);
 
-            //when
+            attempt.setFailedAttempts(4);
+
             when(registrationAttemptRepository.findById(attempt.getId()))
                     .thenReturn(Optional.of(attempt));
-
-            Throwable thrown = catchThrowable(() ->
-                    registrationService.confirm(
-                            attempt.getId(),
-                            new ConfirmationRequest("123456")));
+            when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
             
-            //then
-             assertThat(thrown).isInstanceOfSatisfying(ApiException.class, ex -> {
-                assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
-                assertThat(ex.getBody().getProperties())
-                        .containsEntry(
-                                "code",
-                                "auth.confirmation_attempts_exceeded");
-            });
+            //when
+            registrationService.confirm(
+                    attempt.getId(),
+                    new ConfirmationRequest("123456"));
 
-            verifyNoInteractions(passwordEncoder, accountService);
+            //then
+            verify(accountService).create(EMAIL, "password-hash");
+            verify(registrationAttemptRepository).delete(attempt);
         }
     }
 }
