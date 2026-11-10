@@ -1,9 +1,9 @@
 package com.monstertamers.auth.internal.application;
 
-import com.monstertamers.auth.error.ApiException;
 import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.error.AuthErrorCode;
 import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository;
+import com.monstertamers.web.error.ApiException;
 import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
