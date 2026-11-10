@@ -3,6 +3,8 @@ package com.monstertamers.auth.internal.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -63,7 +65,7 @@ class RegistrationServiceTest {
     private AccountService accountService;
 
     @Mock
-    private RegistrationAttemptCounterService registrationAttemptCounterService;
+    private ConfirmationCodeVerifier confirmationCodeVerifier;
 
     @InjectMocks
     private RegistrationService registrationService;
@@ -160,7 +162,8 @@ class RegistrationServiceTest {
             
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("000000", "code-hash")).thenReturn(false);
-            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
+            doThrow(new ApiException(com.monstertamers.auth.internal.error.AuthErrorCode.CONFIRMATION_CODE_INVALID))
+                    .when(confirmationCodeVerifier).verify(attempt, "000000");
 
             // when
             Throwable thrown = catchThrowable(() -> registrationService.confirm(attempt.getId(), request));
@@ -171,7 +174,7 @@ class RegistrationServiceTest {
                 assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.confirmation_code_invalid");
             });
 
-            verify(registrationAttemptCounterService).consumeAttempt(attempt, 5);
+            verify(confirmationCodeVerifier).verify(attempt, "000000");
         }
 
         @Test
@@ -183,7 +186,7 @@ class RegistrationServiceTest {
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
             when(accountRepository.existsByEmail(EMAIL)).thenReturn(true);
-            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
+            doNothing().when(confirmationCodeVerifier).verify(attempt, "123456");
 
             // when
             Throwable thrown = catchThrowable(() -> registrationService.confirm(attempt.getId(), request));
@@ -204,7 +207,7 @@ class RegistrationServiceTest {
             ConfirmationRequest request = new ConfirmationRequest("123456");
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
-            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
+            doNothing().when(confirmationCodeVerifier).verify(attempt, "123456");
 
             // when
             registrationService.confirm(attempt.getId(), request);
@@ -222,7 +225,8 @@ class RegistrationServiceTest {
 
             when(registrationAttemptRepository.findById(attempt.getId()))
                     .thenReturn(Optional.of(attempt));
-            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(0);
+            doThrow(new ApiException(com.monstertamers.auth.internal.error.AuthErrorCode.CONFIRMATION_CODE_EXPIRED))
+                    .when(confirmationCodeVerifier).verify(attempt, "123456");
             
             //when
             Throwable thrown = catchThrowable(() ->
@@ -248,6 +252,8 @@ class RegistrationServiceTest {
 
             when(registrationAttemptRepository.findById(attempt.getId()))
                     .thenReturn(Optional.of(attempt));
+            doThrow(new ApiException(com.monstertamers.auth.internal.error.AuthErrorCode.CONFIRMATION_ATTEMPTS_EXCEEDED))
+                    .when(confirmationCodeVerifier).verify(attempt, "123456");
             
             //when
             Throwable thrown = catchThrowable(() ->
@@ -277,7 +283,7 @@ class RegistrationServiceTest {
             when(registrationAttemptRepository.findById(attempt.getId()))
                     .thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
-            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
+            doNothing().when(confirmationCodeVerifier).verify(attempt, "123456");
             
             //when
             registrationService.confirm(

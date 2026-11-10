@@ -9,8 +9,6 @@ import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
 import com.monstertamers.auth.error.ApiException;
 import java.util.UUID;
-import java.time.Duration;
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,10 +25,7 @@ public class RegistrationService {
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
     private final AccountService accountService;
-    private final RegistrationAttemptCounterService registrationAttemptCounterService;
-
-    private static final Duration CONFIRMATION_CODE_LIFETIME = Duration.ofMinutes(15);
-    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private final ConfirmationCodeVerifier confirmationCodeVerifier;
 
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
@@ -59,20 +54,7 @@ public class RegistrationService {
         RegistrationAttempt attempt = registrationAttemptRepository.findById(registrationId)
                 .orElseThrow(() -> new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID));
         
-        Instant expiresAt = attempt.getCreatedAt()
-                .plus(CONFIRMATION_CODE_LIFETIME);
-        
-        if (Instant.now().isAfter(expiresAt)) {
-            throw new ApiException(AuthErrorCode.CONFIRMATION_CODE_EXPIRED);
-        }
-
-        if (registrationAttemptCounterService.consumeAttempt(attempt, MAX_FAILED_ATTEMPTS) == 0) {
-            throw new ApiException(AuthErrorCode.CONFIRMATION_ATTEMPTS_EXCEEDED);
-        }
-
-        if (!passwordEncoder.matches(request.code(), attempt.getCode())) {
-            throw new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID);
-        }
+        confirmationCodeVerifier.verify(attempt, request.code());
 
         if (accountRepository.existsByEmail(attempt.getEmail())) {
             throw new ApiException(AuthErrorCode.EMAIL_TAKEN);
