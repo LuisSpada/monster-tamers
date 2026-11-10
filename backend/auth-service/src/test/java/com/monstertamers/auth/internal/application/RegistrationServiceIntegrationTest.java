@@ -3,7 +3,7 @@ package com.monstertamers.auth.internal.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import com.monstertamers.auth.error.ApiException;
+import com.monstertamers.web.error.ApiException;
 import com.monstertamers.auth.internal.domain.RegistrationAttempt;
 import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository;
 import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
