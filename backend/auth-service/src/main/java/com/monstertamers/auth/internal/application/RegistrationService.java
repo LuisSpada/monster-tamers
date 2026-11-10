@@ -25,6 +25,7 @@ public class RegistrationService {
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
     private final AccountService accountService;
+    private final ConfirmationCodeVerifier confirmationCodeVerifier;
 
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
@@ -52,10 +53,8 @@ public class RegistrationService {
 
         RegistrationAttempt attempt = registrationAttemptRepository.findById(registrationId)
                 .orElseThrow(() -> new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID));
-
-        if (!passwordEncoder.matches(request.code(), attempt.getCode())) {
-            throw new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID);
-        }
+        
+        confirmationCodeVerifier.verify(attempt, request.code());
 
         if (accountRepository.existsByEmail(attempt.getEmail())) {
             throw new ApiException(AuthErrorCode.EMAIL_TAKEN);

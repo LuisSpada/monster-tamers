@@ -21,6 +21,16 @@ public enum AuthErrorCode implements ErrorCode {
             "auth.invalid_credentials",
             HttpStatus.UNAUTHORIZED,
             "Email or password is invalid"
+    ),
+    CONFIRMATION_CODE_EXPIRED(
+            "auth.confirmation_code_expired",
+            HttpStatus.BAD_REQUEST,
+            "Confirmation code has expired"
+    ),
+    CONFIRMATION_ATTEMPTS_EXCEEDED(
+            "auth.confirmation_attempts_exceeded",
+            HttpStatus.TOO_MANY_REQUESTS,
+            "Too many confirmation attempts"
     );
 
     private final String code;
