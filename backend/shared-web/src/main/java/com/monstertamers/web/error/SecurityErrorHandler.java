@@ -1,6 +1,5 @@
-package com.monstertamers.auth.security;
+package com.monstertamers.web.error;
 
-import com.monstertamers.auth.error.GlobalExceptionHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,7 +7,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
@@ -16,7 +14,6 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * Passes 401 and 403 to Spring MVC exception handling, which ends up in
  * {@link GlobalExceptionHandler}, so they get the same error body.
  */
-@Component
 public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
 
     private final HandlerExceptionResolver resolver;

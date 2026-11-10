@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.when;
 
-import com.monstertamers.auth.error.ApiException;
 import com.monstertamers.auth.internal.domain.Account;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.web.dto.request.LoginRequest;
 import com.monstertamers.auth.internal.web.dto.response.LoginResponse;
+import com.monstertamers.web.error.ApiException;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

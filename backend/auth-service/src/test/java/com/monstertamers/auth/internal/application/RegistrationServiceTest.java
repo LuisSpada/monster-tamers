@@ -14,7 +14,7 @@ import com.monstertamers.auth.internal.persistence.RegistrationAttemptRepository
 import com.monstertamers.auth.internal.web.dto.request.ConfirmationRequest;
 import com.monstertamers.auth.internal.web.dto.request.RegistrationRequest;
 import com.monstertamers.auth.internal.web.dto.response.RegistrationResponse;
-import com.monstertamers.auth.error.ApiException;
+import com.monstertamers.web.error.ApiException;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;

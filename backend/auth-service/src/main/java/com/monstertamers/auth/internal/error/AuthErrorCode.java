@@ -1,6 +1,6 @@
 package com.monstertamers.auth.internal.error;
 
-import com.monstertamers.auth.error.ErrorCode;
+import com.monstertamers.web.error.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;

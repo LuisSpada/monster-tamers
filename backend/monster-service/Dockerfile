@@ -4,6 +4,7 @@ WORKDIR /workspace
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 COPY shared-contracts/pom.xml shared-contracts/pom.xml
+COPY shared-web/pom.xml shared-web/pom.xml
 COPY monster-service/pom.xml monster-service/pom.xml
 COPY gateway-service/pom.xml gateway-service/pom.xml
 COPY auth-service/pom.xml auth-service/pom.xml
@@ -12,6 +13,7 @@ COPY encounter-service/pom.xml encounter-service/pom.xml
 COPY simulator-service/pom.xml simulator-service/pom.xml
 RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 COPY shared-contracts/src shared-contracts/src
+COPY shared-web/src shared-web/src
 COPY monster-service/src monster-service/src
 RUN ./mvnw -pl monster-service -am package -DskipTests
 
