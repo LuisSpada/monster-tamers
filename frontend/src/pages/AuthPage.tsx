@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { SceneBackground } from "@/components/Scenery";
+import { Fireflies } from "@/components/game/fx/Fireflies";
 import { cn } from "@/lib/utils";
 
 /** Statisk skjema for registrering/innlogging (US-01, US-02). Ingen logikk ennå. */
@@ -8,14 +9,18 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const field = "h-11 w-full rounded-lg border border-line bg-inset/60 px-3 text-sm placeholder:text-muted";
   return (
     <div className="relative isolate grid min-h-full place-items-center overflow-hidden bg-bg p-6">
-      <SceneBackground overlay="bg-bg/30 dark:bg-transparent" />
+      <SceneBackground />
+      <Fireflies count={16} className="-z-10" />
       <form onSubmit={(e) => e.preventDefault()}
-        className="relative z-10 w-full max-w-sm space-y-4 rounded-xl border border-line bg-card/95 p-8 shadow-lg">
+        className="relative z-10 w-full max-w-sm animate-rise space-y-4 rounded-2xl border border-line bg-card/90 p-8 shadow-2xl shadow-black/20 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <img src="/assets/logo.png" alt="" className="pixelated h-12 w-12 rounded-md" />
+          <img src="/assets/logo.png" alt="" className="pixelated h-12 w-12 animate-float rounded-md" />
           <div className="font-pixel text-xl font-bold leading-none">MONSTER <span className="text-accent">TAMERS</span></div>
         </div>
-        <h1 className="font-pixel text-2xl font-semibold">{register ? "Create account" : "Log in"}</h1>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Welcome, tamer</p>
+          <h1 className="mt-1 font-pixel text-3xl font-bold">{register ? "Create account" : "Log in"}</h1>
+        </div>
         <label htmlFor="email" className="block text-sm">Email
           <input id="email" name="email" type="email" required autoComplete="email" className={cn(field, "mt-1")} placeholder="you@example.com" />
         </label>

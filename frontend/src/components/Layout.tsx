@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import { NotificationsMenu, UserMenu } from "@/components/HeaderMenus";
-import Scenery, { SceneBackground } from "@/components/Scenery";
+import Scenery from "@/components/Scenery";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
 
@@ -99,28 +99,30 @@ export default function Layout() {
     <div className="flex min-h-full">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex w-[230px] flex-col border-r border-line bg-sidebar transition-transform",
+          "fixed inset-y-0 left-0 z-30 flex w-[264px] flex-col overflow-hidden border-r border-line bg-sidebar shadow-2xl shadow-black/20 transition-transform",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <SceneBackground overlay="bg-sidebar/80" position="left center" className="-z-0" />
-        <img src="/assets/sidebar-bottom.png" alt="" aria-hidden
-          className="pixelated pointer-events-none absolute inset-x-0 bottom-0 h-auto w-full" />
-        <div className="relative flex h-[68px] items-center gap-3 px-5">
-          <img src="/assets/logo.png" alt="" className="pixelated h-[50px] w-[50px] rounded-md" />
-          <div className="font-pixel text-[22px] font-bold leading-[0.95] tracking-wide">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-20 -top-20 h-56 w-56 rounded-full bg-accent/15 blur-3xl" />
+          <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+          <div className="atmosphere-grid absolute inset-0 opacity-30" />
+        </div>
+        <div className="relative flex h-[82px] items-center gap-3 px-6">
+          <img src="/assets/logo.png" alt="" className="pixelated h-[58px] w-[58px] rounded-md" />
+          <div className="font-pixel text-[24px] font-bold leading-[0.95] tracking-wide">
             <div>MONSTER</div>
             <div className="text-accent">TAMERS</div>
           </div>
         </div>
 
-        <nav className="relative mt-4 flex flex-col gap-1 px-3">
+        <nav className="relative mt-6 flex flex-col gap-1.5 px-4">
           {main.map((i) => <NavItem key={i.to} {...i} onNavigate={() => setOpen(false)} />)}
           <div className="my-4 border-t border-line" />
           {secondary.map((i) => <NavItem key={i.to} {...i} onNavigate={() => setOpen(false)} />)}
         </nav>
 
-        <div className="relative mt-10 flex flex-col gap-4 p-3">
+        <div className="relative mt-12 flex flex-col gap-4 p-4">
           <ThemeSwitch />
           {/* Ingen logikk ennå – legges til senere */}
           <button type="button" className="flex w-full items-center gap-3 rounded-lg border-2 border-danger/40 bg-danger/10 px-4 py-3 text-[15px] font-medium text-danger transition-colors hover:bg-danger/20">
@@ -138,27 +140,21 @@ export default function Layout() {
           onClick={() => setOpen(false)}
         />
       )}
-      <div className={cn("flex min-w-0 flex-1 flex-col", sidebarOpen && "lg:ml-[230px]")}>
-        <header className="sticky top-0 z-20 flex h-[68px] items-center gap-4 border-b border-line bg-sidebar/90 px-5 backdrop-blur">
+      <div className={cn("flex min-w-0 flex-1 flex-col", sidebarOpen && "lg:ml-[264px]")}>
+        <header className="sticky top-0 z-20 flex h-[82px] items-center gap-5 border-b border-line bg-sidebar/90 px-6 backdrop-blur">
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
             aria-expanded={sidebarOpen}
-            className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-inset/60"
+            className="grid h-11 w-11 place-items-center rounded-lg border border-line bg-inset/60"
           >
             <Menu className="h-5 w-5 text-accent" />
           </button>
 
-          <div className="relative max-w-[500px] flex-1">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-            <input
-              placeholder="Search monsters, encounters, ..."
-              className="h-10 w-full rounded-lg border border-line bg-inset/60 pl-10 pr-14 text-sm placeholder:text-muted"
-            />
-            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-line bg-card px-1.5 py-0.5 text-[11px] text-muted">
-              ⌘ K
-            </kbd>
+          <div className="hidden min-w-0 flex-1 sm:block">
+            <div className="font-pixel text-sm font-semibold tracking-wide text-fg">Monster Tamers</div>
+            <div className="text-xs text-muted">Build your team. Face the unknown.</div>
           </div>
 
           <div className="ml-auto flex items-center gap-3">

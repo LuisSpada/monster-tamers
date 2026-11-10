@@ -1,0 +1,29 @@
+/** Single source of truth for the routes used by the game pages. */
+export const paths = {
+  home: "/",
+  collection: "/collection",
+  monster: (id: string) => `/collection/${id}`,
+  team: "/team",
+  encounters: "/encounters",
+  encounter: (id: string) => `/encounters/${id}`,
+  prepare: (id: string) => `/encounters/${id}/prepare`,
+  battleResult: (id: string) => `/encounters/${id}/result`,
+  history: "/battle-history",
+  historyDetail: (id: string) => `/battle-history/${id}`,
+  profile: "/profile",
+  settings: "/settings",
+  /** Relative patterns for react-router (nested under the layout route). */
+  patterns: {
+    collection: "collection",
+    monster: "collection/:monsterId",
+    team: "team",
+    encounters: "encounters",
+    encounter: "encounters/:encounterId",
+    prepare: "encounters/:encounterId/prepare",
+    battleResult: "encounters/:battleId/result",
+    history: "battle-history",
+    historyDetail: "battle-history/:battleId",
+    profile: "profile",
+    settings: "settings",
+  },
+} as const;

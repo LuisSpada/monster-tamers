@@ -6,9 +6,20 @@ export function PageHeader({
   description: string;
 }) {
   return (
-    <header className="mb-8">
-      <h1 className="text-3xl font-bold">{title}</h1>
-      <p className="mt-2 text-slate-400">{description}</p>
+    <header className="relative mx-auto w-full max-w-[1600px] px-4 pb-2 pt-7 sm:px-6 lg:px-10">
+      <div className="relative overflow-hidden rounded-xl border border-line bg-card/70 px-6 py-6 shadow-lg shadow-black/10 backdrop-blur-sm sm:px-8 sm:py-7">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
+        <p className="relative mb-1 font-pixel text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+          Monster Tamers
+        </p>
+        <h1 className="relative font-pixel text-3xl font-bold leading-tight text-fg sm:text-4xl">
+          {title}
+        </h1>
+        <p className="relative mt-2 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">
+          {description}
+        </p>
+        <div className="mt-4 h-px w-24 bg-gradient-to-r from-accent to-transparent" />
+      </div>
     </header>
   );
 }

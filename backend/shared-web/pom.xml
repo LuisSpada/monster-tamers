@@ -23,6 +23,11 @@
             <artifactId>spring-security-web</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- Only services that bring springdoc get the API docs setup. -->
         <dependency>
             <groupId>org.springdoc</groupId>
