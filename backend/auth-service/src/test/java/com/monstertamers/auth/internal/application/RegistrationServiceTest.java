@@ -160,6 +160,7 @@ class RegistrationServiceTest {
             
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("000000", "code-hash")).thenReturn(false);
+            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
 
             // when
             Throwable thrown = catchThrowable(() -> registrationService.confirm(attempt.getId(), request));
@@ -170,7 +171,7 @@ class RegistrationServiceTest {
                 assertThat(ex.getBody().getProperties()).containsEntry("code", "auth.confirmation_code_invalid");
             });
 
-            verify(registrationAttemptCounterService).incrementFailedAttempts(attempt);
+            verify(registrationAttemptCounterService).consumeAttempt(attempt, 5);
         }
 
         @Test
@@ -182,6 +183,7 @@ class RegistrationServiceTest {
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
             when(accountRepository.existsByEmail(EMAIL)).thenReturn(true);
+            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
 
             // when
             Throwable thrown = catchThrowable(() -> registrationService.confirm(attempt.getId(), request));
@@ -202,6 +204,7 @@ class RegistrationServiceTest {
             ConfirmationRequest request = new ConfirmationRequest("123456");
             when(registrationAttemptRepository.findById(attempt.getId())).thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
+            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
 
             // when
             registrationService.confirm(attempt.getId(), request);
@@ -219,6 +222,7 @@ class RegistrationServiceTest {
 
             when(registrationAttemptRepository.findById(attempt.getId()))
                     .thenReturn(Optional.of(attempt));
+            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(0);
             
             //when
             Throwable thrown = catchThrowable(() ->
@@ -273,6 +277,7 @@ class RegistrationServiceTest {
             when(registrationAttemptRepository.findById(attempt.getId()))
                     .thenReturn(Optional.of(attempt));
             when(passwordEncoder.matches("123456", "code-hash")).thenReturn(true);
+            when(registrationAttemptCounterService.consumeAttempt(attempt, 5)).thenReturn(1);
             
             //when
             registrationService.confirm(

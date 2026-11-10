@@ -14,8 +14,7 @@ public class RegistrationAttemptCounterService {
     private final RegistrationAttemptRepository registrationAttemptRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void incrementFailedAttempts(RegistrationAttempt attempt) {
-        attempt.setFailedAttempts(attempt.getFailedAttempts() + 1);
-        registrationAttemptRepository.save(attempt);
+    public int consumeAttempt(RegistrationAttempt attempt, int maxFailedAttempts) {
+        return registrationAttemptRepository.consumeAttempt(attempt.getId(), maxFailedAttempts);
     }
 }

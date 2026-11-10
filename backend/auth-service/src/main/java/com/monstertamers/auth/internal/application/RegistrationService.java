@@ -66,13 +66,11 @@ public class RegistrationService {
             throw new ApiException(AuthErrorCode.CONFIRMATION_CODE_EXPIRED);
         }
 
-        if (attempt.getFailedAttempts() >= MAX_FAILED_ATTEMPTS) {
+        if (registrationAttemptCounterService.consumeAttempt(attempt, MAX_FAILED_ATTEMPTS) == 0) {
             throw new ApiException(AuthErrorCode.CONFIRMATION_ATTEMPTS_EXCEEDED);
         }
 
         if (!passwordEncoder.matches(request.code(), attempt.getCode())) {
-            registrationAttemptCounterService.incrementFailedAttempts(attempt);
-
             throw new ApiException(AuthErrorCode.CONFIRMATION_CODE_INVALID);
         }
 
