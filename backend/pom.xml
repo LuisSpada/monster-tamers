@@ -18,6 +18,7 @@
 
     <modules>
         <module>shared-contracts</module>
+        <module>shared-web</module>
         <module>gateway-service</module>
         <module>auth-service</module>
         <module>player-service</module>
@@ -41,6 +42,11 @@
                 <version>${springdoc.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations-jakarta</artifactId>
                 <version>${swagger-annotations.version}</version>
@@ -48,6 +54,11 @@
             <dependency>
                 <groupId>com.monstertamers</groupId>
                 <artifactId>shared-contracts</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.monstertamers</groupId>
+                <artifactId>shared-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

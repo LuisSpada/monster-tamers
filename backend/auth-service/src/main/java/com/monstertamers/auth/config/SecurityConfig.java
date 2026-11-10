@@ -1,6 +1,7 @@
 package com.monstertamers.auth.config;
 
-import com.monstertamers.auth.security.SecurityErrorHandler;
+import com.monstertamers.auth.internal.web.constant.WebConstants;
+import com.monstertamers.web.error.SecurityErrorHandler;
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,9 +21,9 @@ public class SecurityConfig {
                         // An exception thrown in a filter, before controllers, is forwarded to /error.
                         // Without this, Security blocks that forward and the 500 shows up as 401/403.
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                        .requestMatchers("/api", "/actuator/health").permitAll()
-                        .requestMatchers("/api/registrations/**").permitAll()
-                        .requestMatchers("/api/login").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(WebConstants.BASE_PATH + "/registrations/**").permitAll()
+                        .requestMatchers(WebConstants.BASE_PATH + "/login").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().denyAll())
                 .exceptionHandling(exceptions -> exceptions

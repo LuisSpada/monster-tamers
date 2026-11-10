@@ -1,0 +1,2 @@
+com.monstertamers.web.error.ErrorHandlingAutoConfiguration
+com.monstertamers.web.docs.ApiDocsAutoConfiguration

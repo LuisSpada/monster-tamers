@@ -1,11 +1,11 @@
 package com.monstertamers.auth.internal.application;
 
-import com.monstertamers.auth.error.ApiException;
 import com.monstertamers.auth.internal.domain.Account;
 import com.monstertamers.auth.internal.error.AuthErrorCode;
 import com.monstertamers.auth.internal.persistence.AccountRepository;
 import com.monstertamers.auth.internal.web.dto.request.LoginRequest;
 import com.monstertamers.auth.internal.web.dto.response.LoginResponse;
+import com.monstertamers.web.error.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
