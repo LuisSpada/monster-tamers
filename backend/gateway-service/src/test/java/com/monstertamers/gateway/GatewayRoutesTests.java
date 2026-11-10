@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -37,13 +39,30 @@ class GatewayRoutesTests {
     }
 
     @Test
-    void authRouteRewritesOnlyTheGatewayPrefix() {
+    void authRouteKeepsPath() {
         Route route = routeLocator.getRoutes()
                 .filter(candidate -> candidate.getId().equals("auth-service"))
                 .blockFirst();
 
         assertThat(route).isNotNull();
-        assertThat(route.getFilters()).anyMatch(filter -> filter.toString().contains("/api/auth"));
+        assertThat(route.getFilters()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "auth-service-docs,      http://auth-service:8081",
+            "player-service-docs,    http://player-service:8082",
+            "monster-service-docs,   http://monster-service:8083",
+            "encounter-service-docs, http://encounter-service:8084"
+    })
+    void docsRouteTargetsServiceDocs(String routeId, String uri) {
+        Route route = routeLocator.getRoutes()
+                .filter(candidate -> candidate.getId().equals(routeId))
+                .blockFirst();
+
+        assertThat(route).isNotNull();
+        assertThat(route.getUri().toString()).isEqualTo(uri);
+        assertThat(route.getFilters()).anyMatch(filter -> filter.toString().contains("/v3/api-docs"));
     }
 
     @Test
