@@ -1,5 +1,6 @@
 package com.monstertamers.player.internal.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.monstertamers.player.TestcontainersConfiguration;
@@ -37,6 +38,15 @@ class PlayerRepositoryTest {
 
         assertThatThrownBy(() -> playerRepository.saveAndFlush(player(UUID.randomUUID(), "Tamer-0001")))
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void findByAccountId_returnsMatchingPlayer() {
+        UUID accountId = UUID.randomUUID();
+        Player saved = playerRepository.saveAndFlush(player(accountId, "Tamer-0001"));
+
+        assertThat(playerRepository.findByAccountId(accountId))
+                .contains(saved);
     }
 
     private Player player(UUID accountId, String nickname) {
