@@ -51,6 +51,12 @@ services:
     environment:
       SERVER_PORT: 8082
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
+      PLAYER_DATABASE_URL: jdbc:postgresql://player-postgres:5432/${PLAYER_POSTGRES_DB:-monster_tamers_player}
+      PLAYER_DATABASE_USERNAME: ${PLAYER_POSTGRES_USER:-monster_tamers_player}
+      PLAYER_DATABASE_PASSWORD: ${PLAYER_POSTGRES_PASSWORD:-change-me-development-only}
+    depends_on:
+      player-postgres:
+        condition: service_healthy
     networks:
       - backend
     healthcheck:
@@ -121,9 +127,26 @@ services:
       timeout: 5s
       retries: 5
 
+  player-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${PLAYER_POSTGRES_DB:-monster_tamers_player}
+      POSTGRES_USER: ${PLAYER_POSTGRES_USER:-monster_tamers_player}
+      POSTGRES_PASSWORD: ${PLAYER_POSTGRES_PASSWORD:-change-me-development-only}
+    volumes:
+      - player-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   backend:
     driver: bridge
 
 volumes:
   auth-postgres-data:
+  player-postgres-data:

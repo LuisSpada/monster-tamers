@@ -1,6 +1,16 @@
 spring:
   application:
     name: player-service
+  datasource:
+    url: ${PLAYER_DATABASE_URL:jdbc:postgresql://localhost:5432/monster_tamers_player}
+    username: ${PLAYER_DATABASE_USERNAME:monster_tamers_player}
+    password: ${PLAYER_DATABASE_PASSWORD:change-me}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
 
 app:
   jwt:
