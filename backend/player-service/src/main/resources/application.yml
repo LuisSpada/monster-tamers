@@ -1,6 +1,11 @@
 spring:
   application:
     name: player-service
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:}
+
 springdoc:
   api-docs:
     enabled: ${API_DOCS_ENABLED:true}
@@ -9,8 +14,10 @@ springdoc:
     doc-expansion: none
     tags-sorter: alpha
     operations-sorter: alpha
+
 server:
   port: ${PLAYER_PORT:8082}
+
 management:
   endpoints:
     web:
