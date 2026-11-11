@@ -1,6 +1,9 @@
 spring:
   application:
     name: monster-service
+app:
+  jwt:
+    secret: ${JWT_SECRET:}
 springdoc:
   api-docs:
     enabled: ${API_DOCS_ENABLED:true}

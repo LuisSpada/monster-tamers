@@ -66,6 +66,7 @@ services:
       dockerfile: monster-service/Dockerfile
     environment:
       SERVER_PORT: 8083
+      JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
     networks:
       - backend
     healthcheck:
@@ -81,6 +82,7 @@ services:
       dockerfile: encounter-service/Dockerfile
     environment:
       SERVER_PORT: 8084
+      JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
     networks:
       - backend
     healthcheck:
@@ -96,6 +98,7 @@ services:
       dockerfile: simulator-service/Dockerfile
     environment:
       SERVER_PORT: 8085
+      JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
     networks:
       - backend
     healthcheck:
