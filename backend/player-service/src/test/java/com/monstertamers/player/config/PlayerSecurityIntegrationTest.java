@@ -120,6 +120,13 @@ class PlayerSecurityIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void profileEndpointRequiresAuthentication() throws Exception {
+        assertUnauthorized(
+                mockMvc.perform(get("/api/players/me"))
+        );
+    }
+
     private static void assertUnauthorized(
             ResultActions result
     ) throws Exception {
