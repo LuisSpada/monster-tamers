@@ -37,7 +37,9 @@ public class JwtSecurityAutoConfiguration {
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            // Service-to-service calls; not routed by the gateway. Temporary until #87.
+            "/internal/**"
     };
 
     /** Same secret as auth-service signs tokens with. */

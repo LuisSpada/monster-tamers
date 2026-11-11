@@ -73,6 +73,13 @@ class JwtSecurityAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("Internal paths are open without a token")
+    void internalPath_open() throws Exception {
+        mockMvc.perform(get("/internal/ping"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("A path from app.security.public-paths is open without a token")
     void publicPath_open() throws Exception {
         mockMvc.perform(get("/open"))
@@ -107,6 +114,11 @@ class JwtSecurityAutoConfigurationTest {
         @GetMapping("/open")
         String openPath() {
             return "open";
+        }
+
+        @GetMapping("/internal/ping")
+        String internalPath() {
+            return "internal";
         }
 
         /** Stands in for actuator, which shared-web does not depend on. */
