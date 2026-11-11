@@ -81,4 +81,15 @@ class GatewayRoutesTests {
                 .expectStatus()
                 .isNotFound();
     }
+
+    @Test
+    void internalRoutesHaveNoMatchingRoute() {
+        WebTestClient.bindToApplicationContext(applicationContext)
+                .build()
+                .get()
+                .uri("/internal/players")
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+    }
 }
