@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.monstertamers.player.PlayerServiceApplication;
+import com.monstertamers.player.TestcontainersConfiguration;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.time.Instant;
@@ -36,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
         }
 )
 @AutoConfigureMockMvc
-@Import(PlayerSecurityIntegrationTest.TestController.class)
+@Import({PlayerSecurityIntegrationTest.TestController.class, TestcontainersConfiguration.class})
 class PlayerSecurityIntegrationTest {
 
     private static final String SECRET =
