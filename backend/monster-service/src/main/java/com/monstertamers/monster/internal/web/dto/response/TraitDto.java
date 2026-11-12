@@ -8,4 +8,12 @@ import lombok.Value;
 public class TraitDto {
     String name;
     String description;
+
+    /** Placeholder until traits are modelled. */
+    public static TraitDto stub() {
+        return TraitDto.builder()
+                .name("Steady")
+                .description("Keeps calm under pressure.")
+                .build();
+    }
 }

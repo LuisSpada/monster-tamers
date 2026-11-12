@@ -10,4 +10,14 @@ public class StatsDto {
     int hp;
     int accuracy;
     int agility;
+
+    /** Placeholder until stats are modelled. */
+    public static StatsDto stub() {
+        return StatsDto.builder()
+                .strength(10)
+                .hp(100)
+                .accuracy(60)
+                .agility(40)
+                .build();
+    }
 }

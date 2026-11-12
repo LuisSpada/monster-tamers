@@ -10,4 +10,14 @@ public class ProgressDto {
     int xp;
     Integer xpToNext;
     int pendingPoints;
+
+    /** Placeholder until progression is modelled. */
+    public static ProgressDto stub() {
+        return ProgressDto.builder()
+                .level(1)
+                .xp(0)
+                .xpToNext(100)
+                .pendingPoints(0)
+                .build();
+    }
 }
