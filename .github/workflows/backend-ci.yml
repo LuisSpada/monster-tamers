@@ -144,6 +144,37 @@ jobs:
       - name: Verify gateway health
         run: curl --fail --show-error --silent http://localhost:8080/actuator/health
 
+      - name: Verify Encounter PostgreSQL volume survives normal shutdown
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose=(docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml)
+
+          "${compose[@]}" exec -T encounter-postgres \
+            psql -v ON_ERROR_STOP=1 \
+            -U monster_tamers_encounter \
+            -d monster_tamers_encounter \
+            -c "CREATE TABLE ci_volume_survival (marker TEXT PRIMARY KEY); INSERT INTO ci_volume_survival VALUES ('persisted');"
+
+          "${compose[@]}" down
+          "${compose[@]}" up -d encounter-postgres
+
+          for attempt in {1..30}; do
+            container_id="$("${compose[@]}" ps -q encounter-postgres)"
+            if [ -n "$container_id" ]; then
+              status="$(docker inspect --format '{{.State.Health.Status}}' "$container_id")"
+              if [ "$status" = "healthy" ]; then
+                break
+              fi
+            fi
+            sleep 2
+          done
+
+          marker="$("${compose[@]}" exec -T encounter-postgres \
+            psql -tA -U monster_tamers_encounter -d monster_tamers_encounter \
+            -c "SELECT marker FROM ci_volume_survival;")"
+          test "$marker" = "persisted"
+
       - name: Collect Compose logs on failure
         if: failure()
         run: docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml logs --no-color

@@ -96,6 +96,9 @@ services:
     environment:
       SERVER_PORT: 8084
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
+      ENCOUNTER_DATABASE_URL: jdbc:postgresql://encounter-postgres:5432/monster_tamers_encounter
+      ENCOUNTER_DATABASE_USERNAME: monster_tamers_encounter
+      ENCOUNTER_DATABASE_PASSWORD: change-me-development-only
     networks:
       - backend
     healthcheck:
@@ -104,6 +107,9 @@ services:
       timeout: 5s
       start_period: 20s
       retries: 3
+    depends_on:
+      encounter-postgres:
+        condition: service_healthy
 
   simulator-service:
     build:
@@ -169,6 +175,22 @@ services:
       timeout: 5s
       retries: 5
 
+  encounter-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: monster_tamers_encounter
+      POSTGRES_USER: monster_tamers_encounter
+      POSTGRES_PASSWORD: change-me-development-only
+    volumes:
+     - encounter-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   backend:
     driver: bridge
@@ -177,3 +199,4 @@ volumes:
   auth-postgres-data:
   player-postgres-data:
   monster-postgres-data:
+  encounter-postgres-data:

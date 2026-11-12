@@ -74,9 +74,13 @@ All routes preserve their incoming paths. Internal service hostnames and ports a
 `player-service:8082`, `monster-service:8083`, `encounter-service:8084`, and
 `simulator-service:8085`; only the gateway port is published to the host.
 
-PostgreSQL is private to the backend network and currently owns the
+PostgreSQL is private to the backend network. Auth, Player, Monster, and
+Encounter Services each own a separate database and named volume:
 `monster_tamers_auth` database for `auth-service`. The named
-`auth-postgres-data` volume preserves development data. Other services do not
+`auth-postgres-data`, `player-postgres-data`, `monster-postgres-data`, and
+`encounter-postgres-data`. These volumes preserve development data across a
+normal `docker compose down`; use `docker compose down -v` to remove them.
+Services must not read another service's tables. Other services do not
 receive datasource or Flyway settings because they do not currently require a
 database. Future service databases should use separate credentials and
 database ownership rather than sharing auth tables.

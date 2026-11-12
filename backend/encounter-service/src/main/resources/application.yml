@@ -1,6 +1,16 @@
 spring:
   application:
     name: encounter-service
+  datasource:
+    url: ${ENCOUNTER_DATABASE_URL:jdbc:postgresql://localhost:5432/monster_tamers_encounter}
+    username: ${ENCOUNTER_DATABASE_USERNAME:monster_tamers_encounter}
+    password: ${ENCOUNTER_DATABASE_PASSWORD:change-me}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
 app:
   jwt:
     secret: ${JWT_SECRET:}
