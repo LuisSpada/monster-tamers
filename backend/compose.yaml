@@ -74,6 +74,12 @@ services:
     environment:
       SERVER_PORT: 8083
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
+      MONSTER_DATABASE_URL: jdbc:postgresql://monster-postgres:5432/${MONSTER_POSTGRES_DB:-monster_tamers_monster}
+      MONSTER_DATABASE_USERNAME: ${MONSTER_POSTGRES_USER:-monster_tamers_monster}
+      MONSTER_DATABASE_PASSWORD: ${MONSTER_POSTGRES_PASSWORD:-change-me-development-only}
+    depends_on:
+      monster-postgres:
+        condition: service_healthy
     networks:
       - backend
     healthcheck:
@@ -147,6 +153,22 @@ services:
       timeout: 5s
       retries: 5
 
+  monster-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${MONSTER_POSTGRES_DB:-monster_tamers_monster}
+      POSTGRES_USER: ${MONSTER_POSTGRES_USER:-monster_tamers_monster}
+      POSTGRES_PASSWORD: ${MONSTER_POSTGRES_PASSWORD:-change-me-development-only}
+    volumes:
+      - monster-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   backend:
     driver: bridge
@@ -154,3 +176,4 @@ networks:
 volumes:
   auth-postgres-data:
   player-postgres-data:
+  monster-postgres-data:
