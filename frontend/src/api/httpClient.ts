@@ -35,6 +35,25 @@ async function handleFailedResponse(
   throw await createApiError(response);
 }
 
+async function readSuccessfulResponse<T>(
+  response: Response,
+): Promise<T> {
+  if (
+    response.status === 204 ||
+    response.status === 205
+  ) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
+}
+
 export function createHttpClient(
   baseUrl: string,
   includeAuthentication = true,
@@ -53,9 +72,13 @@ export function createHttpClient(
         headers: {
           Accept: "application/json",
           ...(body !== undefined
-            ? { "Content-Type": "application/json" }
+            ? {
+                "Content-Type": "application/json",
+              }
             : {}),
-          ...(includeAuthentication ? authHeaders() : {}),
+          ...(includeAuthentication
+            ? authHeaders()
+            : {}),
         },
         body:
           body !== undefined
@@ -74,24 +97,18 @@ export function createHttpClient(
       return handleFailedResponse(response);
     }
 
-    if (response.status === 204) {
-      return undefined as T;
-    }
-
-    return (await response.json()) as T;
+    return readSuccessfulResponse<T>(response);
   }
 
   return {
     get: (path) => request("GET", path),
-    post: (path, body) => request("POST", path, body),
-    put: (path, body) => request("PUT", path, body),
+    post: (path, body) =>
+      request("POST", path, body),
+    put: (path, body) =>
+      request("PUT", path, body),
   };
 }
 
-/**
- * Backward-compatible request helper for callers that predate
- * the typed service layer.
- */
 export async function apiRequest<T>(
   path: string,
   init: RequestInit = {},
@@ -110,7 +127,9 @@ export async function apiRequest<T>(
       headers: {
         Accept: "application/json",
         ...(init.body !== undefined
-          ? { "Content-Type": "application/json" }
+          ? {
+              "Content-Type": "application/json",
+            }
           : {}),
         ...authHeaders(),
         ...init.headers,
@@ -128,9 +147,5 @@ export async function apiRequest<T>(
     return handleFailedResponse(response);
   }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return (await response.json()) as T;
+  return readSuccessfulResponse<T>(response);
 }

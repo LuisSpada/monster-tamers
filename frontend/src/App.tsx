@@ -4,18 +4,27 @@ import { ProtectedRoute } from "@/auth/ProtectedRoute";
 import Layout from "@/components/Layout";
 import AuthPage from "@/pages/AuthPage";
 import Home from "@/pages/Home";
+import RegistrationConfirmationPage from "@/pages/RegistrationConfirmationPage";
+import RegistrationPage from "@/pages/RegistrationPage";
 
 export default function App() {
   return (
     <Routes>
       <Route
         path="login"
-        element={<AuthPage mode="login" />}
+        element={<AuthPage />}
       />
 
       <Route
         path="register"
-        element={<AuthPage mode="register" />}
+        element={<RegistrationPage />}
+      />
+
+      <Route
+        path="register/confirm"
+        element={
+          <RegistrationConfirmationPage />
+        }
       />
 
       <Route element={<ProtectedRoute />}>

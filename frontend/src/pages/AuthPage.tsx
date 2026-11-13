@@ -7,22 +7,17 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+import { login } from "@/api/auth";
 import {
   type LoginNavigationState,
 } from "@/auth/ProtectedRoute";
 import { useAuth } from "@/auth/useAuth";
-import { login } from "@/api/auth";
 import { getErrorMessage } from "@/api/errors";
 import { SceneBackground } from "@/components/Scenery";
 import { Fireflies } from "@/components/game/fx/Fireflies";
 import { cn } from "@/lib/utils";
 
-export default function AuthPage({
-  mode,
-}: {
-  mode: "login" | "register";
-}) {
-  const register = mode === "register";
+export default function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn } = useAuth();
@@ -33,7 +28,9 @@ export default function AuthPage({
   const returnTo =
     navigationState?.returnTo ?? "/";
 
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] =
+    useState(false);
+
   const [errorMessage, setErrorMessage] =
     useState<string | null>(null);
 
@@ -44,28 +41,32 @@ export default function AuthPage({
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
-
-    // Registration is implemented in a separate issue.
-    if (register) {
-      return;
-    }
-
     setSubmitting(true);
     setErrorMessage(null);
 
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "");
+    const formData = new FormData(
+      event.currentTarget,
+    );
+
+    const email = String(
+      formData.get("email") ?? "",
+    );
+
     const password = String(
       formData.get("password") ?? "",
     );
 
     try {
-      const response = await login(email, password);
+      const response = await login(
+        email,
+        password,
+      );
 
-    signIn(response.accessToken);
-    navigate(returnTo, {
-      replace: true,
-    });
+      signIn(response.accessToken);
+
+      navigate(returnTo, {
+        replace: true,
+      });
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -103,7 +104,7 @@ export default function AuthPage({
           </p>
 
           <h1 className="mt-1 font-pixel text-3xl font-bold">
-            {register ? "Create account" : "Log in"}
+            Log in
           </h1>
         </div>
 
@@ -124,24 +125,6 @@ export default function AuthPage({
           />
         </label>
 
-        {register && (
-          <label
-            htmlFor="playerName"
-            className="block text-sm"
-          >
-            Player name
-            <input
-              id="playerName"
-              name="playerName"
-              type="text"
-              required
-              autoComplete="nickname"
-              className={cn(field, "mt-1")}
-              placeholder="Tamer"
-            />
-          </label>
-        )}
-
         <label
           htmlFor="password"
           className="block text-sm"
@@ -152,63 +135,11 @@ export default function AuthPage({
             name="password"
             type="password"
             required
+            autoComplete="current-password"
             disabled={submitting}
-            autoComplete={
-              register
-                ? "new-password"
-                : "current-password"
-            }
             className={cn(field, "mt-1")}
           />
         </label>
-
-        {register && (
-          <>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm"
-            >
-              Confirm password
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                autoComplete="new-password"
-                className={cn(field, "mt-1")}
-              />
-            </label>
-
-            <label
-              htmlFor="confirmationCode"
-              className="block text-sm"
-            >
-              Confirmation code
-              <input
-                id="confirmationCode"
-                aria-label="Confirmation code"
-                name="confirmationCode"
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                required
-                aria-describedby="confirmation-help"
-                className={cn(
-                  field,
-                  "mt-1 tracking-[0.35em]",
-                )}
-                placeholder="000000"
-              />
-
-              <span
-                id="confirmation-help"
-                className="mt-1 block text-xs text-muted"
-              >
-                Enter the six-digit code from your email.
-              </span>
-            </label>
-          </>
-        )}
 
         {errorMessage && (
           <div
@@ -226,29 +157,16 @@ export default function AuthPage({
         >
           {submitting
             ? "Logging in..."
-            : register
-              ? "Create account"
-              : "Log in"}
+            : "Log in"}
         </button>
 
-        {register && (
-          <p className="text-center text-xs text-muted">
-            Registration integration is coming next.
-          </p>
-        )}
-
         <p className="text-center text-sm">
-          {register
-            ? "Already have an account? "
-            : "New here? "}
-
+          New here?{" "}
           <Link
-            to={register ? "/login" : "/register"}
+            to="/register"
             className="font-medium text-accent"
           >
-            {register
-              ? "Log in"
-              : "Create account"}
+            Create account
           </Link>
         </p>
       </form>
