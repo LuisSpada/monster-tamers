@@ -4,10 +4,14 @@ import {
 } from "react";
 import {
   Link,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
+import {
+  type LoginNavigationState,
+} from "@/auth/ProtectedRoute";
+import { useAuth } from "@/auth/useAuth";
 import { login } from "@/api/auth";
-import { setAccessToken } from "@/api/authSession";
 import { getErrorMessage } from "@/api/errors";
 import { SceneBackground } from "@/components/Scenery";
 import { Fireflies } from "@/components/game/fx/Fireflies";
@@ -20,6 +24,14 @@ export default function AuthPage({
 }) {
   const register = mode === "register";
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn } = useAuth();
+
+  const navigationState =
+    location.state as LoginNavigationState | null;
+
+  const returnTo =
+    navigationState?.returnTo ?? "/";
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] =
@@ -50,8 +62,10 @@ export default function AuthPage({
     try {
       const response = await login(email, password);
 
-      setAccessToken(response.accessToken);
-      navigate("/", { replace: true });
+    signIn(response.accessToken);
+    navigate(returnTo, {
+      replace: true,
+    });
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {

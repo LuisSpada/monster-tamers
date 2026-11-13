@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import {
+  NavLink,
+  Outlet,
+  useNavigate,
+} from "react-router-dom";
+import { useAuth } from "@/auth/useAuth";
 import { Menu } from "lucide-react";
 import { NotificationsMenu, UserMenu } from "@/components/HeaderMenus";
 import Scenery from "@/components/Scenery";
@@ -73,6 +78,8 @@ function ThemeSwitch() {
 }
 
 export default function Layout() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -94,6 +101,14 @@ export default function Layout() {
   }, []);
 
   const sidebarOpen = isDesktop ? !open : open;
+
+    function handleLogout() {
+    logout();
+    setOpen(false);
+    navigate("/login", {
+      replace: true,
+    });
+  }
 
   return (
     <div className="flex min-h-full">
@@ -124,11 +139,17 @@ export default function Layout() {
 
         <div className="relative mt-12 flex flex-col gap-4 p-4">
           <ThemeSwitch />
-          {/* Ingen logikk ennå – legges til senere */}
-          <button type="button" className="flex w-full items-center gap-3 rounded-lg border-2 border-danger/40 bg-danger/10 px-4 py-3 text-[15px] font-medium text-danger transition-colors hover:bg-danger/20">
-            <Px name="nav-logout" className="h-[26px] w-[26px] object-contain" />
-            Log out
-          </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-lg border-2 border-danger/40 bg-danger/10 px-4 py-3 text-[15px] font-medium text-danger transition-colors hover:bg-danger/20"
+            >
+              <Px
+                name="nav-logout"
+                className="h-[26px] w-[26px] object-contain"
+              />
+              Log out
+            </button>
         </div>
       </aside>
 

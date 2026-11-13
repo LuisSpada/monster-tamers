@@ -20,7 +20,12 @@ import {
   vi,
 } from "vitest";
 import { getAccessToken } from "@/api/authSession";
+import { AuthProvider } from "@/auth/AuthProvider";
 import AuthPage from "./AuthPage";
+
+interface LoginNavigationState {
+  returnTo?: string;
+}
 
 function LocationProbe() {
   const location = useLocation();
@@ -28,24 +33,88 @@ function LocationProbe() {
   return (
     <div data-testid="location">
       {location.pathname}
+      {location.search}
+      {location.hash}
     </div>
   );
 }
 
-function renderLogin() {
+function renderLogin(
+  options: {
+    returnTo?: string;
+  } = {},
+) {
+  const initialEntry = options.returnTo
+    ? {
+        pathname: "/login",
+        state: {
+          returnTo: options.returnTo,
+        } satisfies LoginNavigationState,
+      }
+    : "/login";
+
   return render(
-    <MemoryRouter initialEntries={["/login"]}>
-      <Routes>
-        <Route
-          path="/login"
-          element={<AuthPage mode="login" />}
-        />
-        <Route
-          path="/"
-          element={<LocationProbe />}
-        />
-      </Routes>
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/login"
+            element={<AuthPage mode="login" />}
+          />
+
+          <Route
+            path="*"
+            element={<LocationProbe />}
+          />
+        </Routes>
+      </AuthProvider>
     </MemoryRouter>,
+  );
+}
+
+function renderRegistration() {
+  return render(
+    <MemoryRouter initialEntries={["/register"]}>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/register"
+            element={<AuthPage mode="register" />}
+          />
+        </Routes>
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+}
+
+function fillLoginForm(
+  email = "tamer@example.com",
+  password = "secret-password",
+) {
+  fireEvent.change(
+    screen.getByLabelText("Email"),
+    {
+      target: {
+        value: email,
+      },
+    },
+  );
+
+  fireEvent.change(
+    screen.getByLabelText("Password"),
+    {
+      target: {
+        value: password,
+      },
+    },
+  );
+}
+
+function submitLogin() {
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "Log in",
+    }),
   );
 }
 
@@ -57,15 +126,12 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  sessionStorage.clear();
 });
 
 describe("AuthPage", () => {
   it("renders registration credentials and confirmation field", () => {
-    render(
-      <MemoryRouter>
-        <AuthPage mode="register" />
-      </MemoryRouter>,
-    );
+    renderRegistration();
 
     expect(
       screen.getByLabelText("Email"),
@@ -107,30 +173,8 @@ describe("AuthPage", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     renderLogin();
-
-    fireEvent.change(
-      screen.getByLabelText("Email"),
-      {
-        target: {
-          value: "tamer@example.com",
-        },
-      },
-    );
-
-    fireEvent.change(
-      screen.getByLabelText("Password"),
-      {
-        target: {
-          value: "secret-password",
-        },
-      },
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Log in",
-      }),
-    );
+    fillLoginForm();
+    submitLogin();
 
     await waitFor(() => {
       expect(getAccessToken()).toBe(
@@ -155,6 +199,45 @@ describe("AuthPage", () => {
     );
   });
 
+  it("returns to the originally requested route after login", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            accessToken: "signed-access-token",
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    renderLogin({
+      returnTo:
+        "/collection?class=Fighter#owned",
+    });
+
+    fillLoginForm();
+    submitLogin();
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("location"),
+      ).toHaveTextContent(
+        "/collection?class=Fighter#owned",
+      );
+    });
+
+    expect(getAccessToken()).toBe(
+      "signed-access-token",
+    );
+  });
+
   it("shows Problem Details from invalid credentials", async () => {
     vi.stubGlobal(
       "fetch",
@@ -163,7 +246,8 @@ describe("AuthPage", () => {
           JSON.stringify({
             title: "Unauthorized",
             status: 401,
-            detail: "Email or password is invalid",
+            detail:
+              "Email or password is invalid",
             code: "auth.invalid_credentials",
           }),
           {
@@ -178,30 +262,11 @@ describe("AuthPage", () => {
     );
 
     renderLogin();
-
-    fireEvent.change(
-      screen.getByLabelText("Email"),
-      {
-        target: {
-          value: "tamer@example.com",
-        },
-      },
+    fillLoginForm(
+      "tamer@example.com",
+      "wrong-password",
     );
-
-    fireEvent.change(
-      screen.getByLabelText("Password"),
-      {
-        target: {
-          value: "wrong-password",
-        },
-      },
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Log in",
-      }),
-    );
+    submitLogin();
 
     expect(
       await screen.findByRole("alert"),
@@ -221,36 +286,16 @@ describe("AuthPage", () => {
     );
 
     renderLogin();
-
-    fireEvent.change(
-      screen.getByLabelText("Email"),
-      {
-        target: {
-          value: "tamer@example.com",
-        },
-      },
-    );
-
-    fireEvent.change(
-      screen.getByLabelText("Password"),
-      {
-        target: {
-          value: "secret-password",
-        },
-      },
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Log in",
-      }),
-    );
+    fillLoginForm();
+    submitLogin();
 
     expect(
       await screen.findByRole("alert"),
     ).toHaveTextContent(
       "Could not reach the server. Check your connection and try again.",
     );
+
+    expect(getAccessToken()).toBeNull();
   });
 
   it("keeps registration disconnected from Auth Service", () => {
@@ -258,11 +303,7 @@ describe("AuthPage", () => {
 
     vi.stubGlobal("fetch", fetchMock);
 
-    render(
-      <MemoryRouter>
-        <AuthPage mode="register" />
-      </MemoryRouter>,
-    );
+    renderRegistration();
 
     fireEvent.submit(
       screen
