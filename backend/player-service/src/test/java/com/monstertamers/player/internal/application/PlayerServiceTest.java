@@ -1,10 +1,13 @@
 package com.monstertamers.player.internal.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import com.monstertamers.player.api.PlayerCreatedEvent;
 import com.monstertamers.player.internal.domain.Player;
 import com.monstertamers.player.internal.persistence.PlayerRepository;
 import java.util.Optional;
@@ -14,12 +17,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class PlayerServiceTest {
 
     @Mock
     private PlayerRepository playerRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private PlayerService playerService;
@@ -34,6 +41,7 @@ class PlayerServiceTest {
 
         assertThat(result).isSameAs(existing);
         verify(playerRepository).findByAccountId(accountId);
+        verify(eventPublisher, never()).publishEvent(any(Object.class));
     }
 
     @Test
@@ -50,6 +58,7 @@ class PlayerServiceTest {
         assertThat(result.getAccountId()).isEqualTo(accountId);
         assertThat(result.getNickname()).matches("Tamer-\\d{4}");
         verify(playerRepository).save(result);
+        verify(eventPublisher).publishEvent(new PlayerCreatedEvent(accountId));
     }
 
     @Test

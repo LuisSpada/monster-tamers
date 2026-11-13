@@ -11,6 +11,12 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  http:
+    serviceclient:
+      monster:
+        base-url: ${MONSTER_BASE_URL:http://localhost:8083}
+        connect-timeout: ${MONSTER_CONNECT_TIMEOUT:2s}
+        read-timeout: ${MONSTER_READ_TIMEOUT:3s}
 
 app:
   jwt:

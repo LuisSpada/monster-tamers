@@ -55,6 +55,7 @@ services:
       PLAYER_DATABASE_URL: jdbc:postgresql://player-postgres:5432/${PLAYER_POSTGRES_DB:-monster_tamers_player}
       PLAYER_DATABASE_USERNAME: ${PLAYER_POSTGRES_USER:-monster_tamers_player}
       PLAYER_DATABASE_PASSWORD: ${PLAYER_POSTGRES_PASSWORD:-change-me-development-only}
+      MONSTER_BASE_URL: http://monster-service:8083
     depends_on:
       player-postgres:
         condition: service_healthy
