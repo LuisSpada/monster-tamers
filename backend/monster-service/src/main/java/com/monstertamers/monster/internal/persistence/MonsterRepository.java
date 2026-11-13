@@ -11,4 +11,6 @@ public interface MonsterRepository extends JpaRepository<Monster, UUID> {
     List<Monster> findAllByAccountId(UUID accountId);
 
     Optional<Monster> findByIdAndAccountId(UUID id, UUID accountId);
+
+    boolean existsByAccountId(UUID accountId);
 }
