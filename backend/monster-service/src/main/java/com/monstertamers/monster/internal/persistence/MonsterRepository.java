@@ -7,13 +7,29 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MonsterRepository extends JpaRepository<Monster, UUID> {
+public interface MonsterRepository
+        extends JpaRepository<Monster, UUID> {
 
-    List<Monster> findAllByAccountId(UUID accountId);
+    List<Monster> findAllByAccountId(
+            UUID accountId
+    );
 
-    Optional<Monster> findByIdAndAccountId(UUID id, UUID accountId);
+    Optional<Monster> findByIdAndAccountId(
+            UUID id,
+            UUID accountId
+    );
 
-    boolean existsByAccountId(UUID accountId);
+    List<Monster> findAllByIdInAndAccountId(
+            Collection<UUID> ids,
+            UUID accountId
+    );
 
-    long countByIdInAndAccountId(Collection<UUID> ids, UUID accountId);
+    boolean existsByAccountId(
+            UUID accountId
+    );
+
+    long countByIdInAndAccountId(
+            Collection<UUID> ids,
+            UUID accountId
+    );
 }
