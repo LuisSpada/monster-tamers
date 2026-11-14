@@ -1,6 +1,7 @@
 package com.monstertamers.monster.internal.persistence;
 
 import com.monstertamers.monster.internal.domain.Monster;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,4 +14,6 @@ public interface MonsterRepository extends JpaRepository<Monster, UUID> {
     Optional<Monster> findByIdAndAccountId(UUID id, UUID accountId);
 
     boolean existsByAccountId(UUID accountId);
+
+    long countByIdInAndAccountId(Collection<UUID> ids, UUID accountId);
 }
