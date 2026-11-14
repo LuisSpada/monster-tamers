@@ -42,29 +42,83 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Generate temporary TLS password
-        shell: bash
-        run: |
-          TLS_PASSWORD="$(openssl rand -hex 24)"
-          echo "::add-mask::$TLS_PASSWORD"
-          echo "TLS_PASSWORD=$TLS_PASSWORD" >> "$GITHUB_ENV"
-
       - name: Generate temporary TLS certificates
         shell: pwsh
         run: |
+          $password = "CiTls2026-Temporary-Password"
+
           ./infrastructure/tls/generate-local-certificates.ps1 `
-            -Password $env:TLS_PASSWORD `
+            -Password $password `
             -Force
+
+      - name: Validate generated TLS stores
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          password="$(
+            cat infrastructure/runtime/tls/tls-password.txt
+          )"
+
+          test "$password" = \
+            "CiTls2026-Temporary-Password"
+
+          keytool -list \
+            -keystore infrastructure/runtime/tls/truststore.p12 \
+            -storetype PKCS12 \
+            -storepass "$password"
+
+          for service in \
+            gateway-service \
+            auth-service \
+            player-service \
+            monster-service \
+            encounter-service \
+            simulator-service
+          do
+            echo "Validating $service"
+
+            keytool -list \
+              -keystore \
+              "infrastructure/runtime/tls/$service/server.p12" \
+              -storetype PKCS12 \
+              -storepass "$password" |
+              grep "$service"
+          done
+
+          if grep -q $'\r' \
+            infrastructure/runtime/tls/tls-password.txt
+          then
+            echo "TLS password contains a carriage return."
+            exit 1
+          fi
+
+          if [ "$(wc -l < infrastructure/runtime/tls/tls-password.txt)" -ne 0 ]
+          then
+            echo "TLS password file contains a newline."
+            exit 1
+          fi
 
       - name: Verify generated TLS material is ignored
         shell: bash
         run: |
-          git check-ignore infrastructure/runtime/tls/ca.key
-          git check-ignore infrastructure/runtime/tls/truststore.p12
-          git check-ignore infrastructure/runtime/tls/tls-password.txt
-          git check-ignore infrastructure/runtime/tls/gateway-service/server.p12
+          set -euo pipefail
 
-          if git ls-files | grep -E 'runtime/tls|\.p12$|\.key$|tls-password'; then
+          git check-ignore \
+            infrastructure/runtime/tls/ca.key
+
+          git check-ignore \
+            infrastructure/runtime/tls/truststore.p12
+
+          git check-ignore \
+            infrastructure/runtime/tls/tls-password.txt
+
+          git check-ignore \
+            infrastructure/runtime/tls/gateway-service/server.p12
+
+          if git ls-files |
+            grep -E 'runtime/tls|\.p12$|\.key$|tls-password'
+          then
             echo "Generated TLS material must not be tracked."
             exit 1
           fi
@@ -84,11 +138,56 @@ jobs:
             build
 
       - name: Start HTTPS stack
+        id: compose-up
+        continue-on-error: true
         shell: bash
         run: |
           docker compose \
             -f backend/compose.yaml \
             up -d
+
+      - name: Show startup state
+        if: always()
+        shell: bash
+        run: |
+          docker compose \
+            -f backend/compose.yaml \
+            ps -a
+
+          echo "Simulator logs:"
+
+          docker compose \
+            -f backend/compose.yaml \
+            logs \
+            --no-color \
+            --tail 200 \
+            simulator-service
+
+          echo "Simulator container state and mounts:"
+
+          container_id="$(
+            docker compose \
+              -f backend/compose.yaml \
+              ps -aq simulator-service
+          )"
+
+          if [ -n "$container_id" ]; then
+            docker inspect \
+              "$container_id" \
+              --format \
+              'Exit={{.State.ExitCode}} Error={{.State.Error}}'
+
+            docker inspect \
+              "$container_id" \
+              --format '{{json .Mounts}}'
+          fi
+
+      - name: Fail when Compose startup failed
+        if: steps.compose-up.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "Docker Compose failed to start the HTTPS stack."
+          exit 1
 
       - name: Wait for HTTPS Gateway
         shell: bash
@@ -106,6 +205,8 @@ jobs:
       - name: Verify Gateway routes over HTTPS
         shell: bash
         run: |
+          set -euo pipefail
+
           for path in \
             docs/auth/v3/api-docs \
             docs/players/v3/api-docs \
@@ -138,28 +239,47 @@ jobs:
       - name: Verify container health
         shell: bash
         run: |
-          docker compose \
-            -f backend/compose.yaml \
-            ps
+          set -euo pipefail
 
-          unhealthy="$(
-            docker compose \
-              -f backend/compose.yaml \
-              ps --format json |
-            jq -r '
-              select(
-                .Health != "healthy" and
-                .Health != ""
-              ) |
-              .Service + ": " + .Health
-            '
-          )"
+          services=(
+            gateway-service
+            auth-service
+            player-service
+            monster-service
+            encounter-service
+            simulator-service
+            postgres
+            player-postgres
+            monster-postgres
+            encounter-postgres
+          )
 
-          if [ -n "$unhealthy" ]; then
-            echo "Unhealthy services:"
-            echo "$unhealthy"
-            exit 1
-          fi
+          for service in "${services[@]}"; do
+            container_id="$(
+              docker compose \
+                -f backend/compose.yaml \
+                ps -q "$service"
+            )"
+
+            if [ -z "$container_id" ]; then
+              echo "Missing container for $service."
+              exit 1
+            fi
+
+            status="$(
+              docker inspect \
+                --format \
+                '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' \
+                "$container_id"
+            )"
+
+            echo "$service: $status"
+
+            if [ "$status" != "healthy" ]; then
+              echo "$service is not healthy."
+              exit 1
+            fi
+          done
 
       - name: Show service logs after failure
         if: failure()
@@ -167,7 +287,7 @@ jobs:
         run: |
           docker compose \
             -f backend/compose.yaml \
-            ps
+            ps -a
 
           docker compose \
             -f backend/compose.yaml \
