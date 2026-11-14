@@ -1,20 +1,24 @@
 spring:
   application:
     name: player-service
+
   datasource:
     url: ${PLAYER_DATABASE_URL:jdbc:postgresql://localhost:5432/monster_tamers_player}
     username: ${PLAYER_DATABASE_USERNAME:monster_tamers_player}
     password: ${PLAYER_DATABASE_PASSWORD:change-me}
+
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
   flyway:
     enabled: true
+
   http:
     serviceclient:
       monster:
-        base-url: ${MONSTER_BASE_URL:http://localhost:8083}
+        base-url: ${MONSTER_BASE_URL:https://localhost:8083}
         connect-timeout: ${MONSTER_CONNECT_TIMEOUT:2s}
         read-timeout: ${MONSTER_READ_TIMEOUT:3s}
 
@@ -25,6 +29,7 @@ app:
 springdoc:
   api-docs:
     enabled: ${API_DOCS_ENABLED:true}
+
   swagger-ui:
     enabled: ${API_DOCS_ENABLED:true}
     doc-expansion: none
@@ -32,7 +37,13 @@ springdoc:
     operations-sorter: alpha
 
 server:
-  port: ${PLAYER_PORT:8082}
+  port: ${SERVER_PORT:8082}
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    key-store: ${SERVER_SSL_KEY_STORE:}
+    key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
+    key-alias: ${SERVER_SSL_KEY_ALIAS:}
 
 management:
   endpoints:

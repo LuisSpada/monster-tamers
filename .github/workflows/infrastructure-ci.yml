@@ -27,15 +27,347 @@ concurrency:
 
 jobs:
   verify:
-    name: Validate Compose and build images
+    name: Validate HTTPS Compose stack
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Generate temporary TLS certificates
+        shell: pwsh
+        run: |
+          $password = "CiTls2026-Temporary-Password"
+
+          ./infrastructure/tls/generate-local-certificates.ps1 `
+            -Password $password `
+            -Force
+
+      - name: Make mounted TLS paths container-readable
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          find infrastructure/runtime/tls \
+            -type d \
+            -exec chmod 755 {} \;
+
+          chmod 644 \
+            infrastructure/runtime/tls/ca.crt \
+            infrastructure/runtime/tls/truststore.p12 \
+            infrastructure/runtime/tls/tls-password.txt
+
+          find infrastructure/runtime/tls \
+            -mindepth 2 \
+            -maxdepth 2 \
+            -type f \
+            \( -name "server.p12" -o -name "server.crt" \) \
+            -exec chmod 644 {} \;
+
+          echo "TLS directory permissions:"
+
+          find infrastructure/runtime/tls \
+            -maxdepth 2 \
+            -type d \
+            -printf "%m %p\n"
+
+          echo "Mounted TLS file permissions:"
+
+          stat \
+            --format="%a %U:%G %n" \
+            infrastructure/runtime/tls/simulator-service/server.p12 \
+            infrastructure/runtime/tls/ca.crt \
+            infrastructure/runtime/tls/truststore.p12 \
+            infrastructure/runtime/tls/tls-password.txt
+
+      - name: Validate generated TLS stores
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          password="$(
+            cat infrastructure/runtime/tls/tls-password.txt
+          )"
+
+          test "$password" = \
+            "CiTls2026-Temporary-Password"
+
+          keytool -list \
+            -keystore infrastructure/runtime/tls/truststore.p12 \
+            -storetype PKCS12 \
+            -storepass "$password"
+
+          for service in \
+            gateway-service \
+            auth-service \
+            player-service \
+            monster-service \
+            encounter-service \
+            simulator-service
+          do
+            echo "Validating $service"
+
+            keytool -list \
+              -keystore \
+              "infrastructure/runtime/tls/$service/server.p12" \
+              -storetype PKCS12 \
+              -storepass "$password" |
+              grep "$service"
+          done
+
+          if grep -q $'\r' \
+            infrastructure/runtime/tls/tls-password.txt
+          then
+            echo "TLS password contains a carriage return."
+            exit 1
+          fi
+
+          if [ "$(wc -l < infrastructure/runtime/tls/tls-password.txt)" -ne 0 ]
+          then
+            echo "TLS password file contains a newline."
+            exit 1
+          fi
+
+      - name: Verify generated TLS material is ignored
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git check-ignore \
+            infrastructure/runtime/tls/ca.key
+
+          git check-ignore \
+            infrastructure/runtime/tls/truststore.p12
+
+          git check-ignore \
+            infrastructure/runtime/tls/tls-password.txt
+
+          git check-ignore \
+            infrastructure/runtime/tls/gateway-service/server.p12
+
+          if git ls-files |
+            grep -E 'runtime/tls|\.p12$|\.key$|tls-password'
+          then
+            echo "Generated TLS material must not be tracked."
+            exit 1
+          fi
 
       - name: Validate Docker Compose configuration
-        run: docker compose -f infrastructure/compose.yaml config --quiet
+        shell: bash
+        run: |
+          docker compose \
+            -f backend/compose.yaml \
+            config --quiet
 
       - name: Build application images
-        run: docker compose -f infrastructure/compose.yaml build
+        shell: bash
+        run: |
+          docker compose \
+            -f backend/compose.yaml \
+            build
+
+      - name: Verify TLS mounts as non-root container user
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f backend/compose.yaml \
+            run \
+            --rm \
+            --no-deps \
+            --entrypoint sh \
+            simulator-service \
+            -c '
+              echo "Container user:"
+              id
+
+              echo "Mounted paths:"
+              ls -ld /run /run/tls /run/secrets
+              ls -l /run/tls/server.p12
+              ls -l /run/tls/ca.crt
+              ls -l /run/secrets/tls_password
+
+              test -r /run/tls/server.p12
+              test -r /run/tls/ca.crt
+              test -r /run/secrets/tls_password
+
+              echo "All Simulator TLS mounts are readable."
+            '
+
+      - name: Start HTTPS stack
+        id: compose-up
+        continue-on-error: true
+        shell: bash
+        run: |
+          docker compose \
+            -f backend/compose.yaml \
+            up -d
+
+      - name: Show startup state
+        if: always()
+        shell: bash
+        run: |
+          docker compose \
+            -f backend/compose.yaml \
+            ps -a || true
+
+          echo "Simulator logs:"
+
+          docker compose \
+            -f backend/compose.yaml \
+            logs \
+            --no-color \
+            --tail 200 \
+            simulator-service || true
+
+          echo "Simulator container state and mounts:"
+
+          container_id="$(
+            docker compose \
+              -f backend/compose.yaml \
+              ps -aq simulator-service
+          )"
+
+          if [ -n "$container_id" ]; then
+            docker inspect \
+              "$container_id" \
+              --format \
+              'Exit={{.State.ExitCode}} Error={{.State.Error}}' \
+              || true
+
+            docker inspect \
+              "$container_id" \
+              --format '{{json .Mounts}}' \
+              || true
+          fi
+
+      - name: Fail when Compose startup failed
+        if: steps.compose-up.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "Docker Compose failed to start the HTTPS stack."
+          exit 1
+
+      - name: Wait for HTTPS Gateway
+        shell: bash
+        run: |
+          curl \
+            --fail \
+            --show-error \
+            --silent \
+            --retry 30 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            --cacert infrastructure/runtime/tls/ca.crt \
+            https://localhost:8080/actuator/health
+
+      - name: Verify Gateway routes over HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for path in \
+            docs/auth/v3/api-docs \
+            docs/players/v3/api-docs \
+            docs/monsters/v3/api-docs \
+            docs/encounters/v3/api-docs
+          do
+            curl \
+              --fail \
+              --show-error \
+              --silent \
+              --cacert infrastructure/runtime/tls/ca.crt \
+              "https://localhost:8080/$path" \
+              > /dev/null
+          done
+
+      - name: Verify plaintext HTTP is rejected
+        shell: bash
+        run: |
+          if curl \
+            --fail \
+            --silent \
+            --max-time 5 \
+            http://localhost:8080/actuator/health \
+            > /dev/null 2>&1
+          then
+            echo "Gateway unexpectedly accepted plaintext HTTP."
+            exit 1
+          fi
+
+      - name: Verify container health
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          services=(
+            gateway-service
+            auth-service
+            player-service
+            monster-service
+            encounter-service
+            simulator-service
+            postgres
+            player-postgres
+            monster-postgres
+            encounter-postgres
+          )
+
+          for service in "${services[@]}"; do
+            container_id="$(
+              docker compose \
+                -f backend/compose.yaml \
+                ps -q "$service"
+            )"
+
+            if [ -z "$container_id" ]; then
+              echo "Missing container for $service."
+              exit 1
+            fi
+
+            status="$(
+              docker inspect \
+                --format \
+                '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' \
+                "$container_id"
+            )"
+
+            echo "$service: $status"
+
+            if [ "$status" != "healthy" ]; then
+              echo "$service is not healthy."
+              exit 1
+            fi
+          done
+
+      - name: Show service logs after failure
+        if: failure()
+        shell: bash
+        run: |
+          docker compose \
+            -f backend/compose.yaml \
+            ps -a || true
+
+          docker compose \
+            -f backend/compose.yaml \
+            logs \
+            --no-color \
+            --tail 200 || true
+
+      - name: Stop stack
+        if: always()
+        shell: bash
+        run: |
+          docker compose \
+            -f backend/compose.yaml \
+            down -v \
+            --remove-orphans

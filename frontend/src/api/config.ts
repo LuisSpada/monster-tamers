@@ -23,7 +23,7 @@ export const apiConfig = {
 
   gatewayBaseUrl: String(
     import.meta.env.VITE_GATEWAY_BASE_URL ??
-      "http://localhost:8080",
+      "https://localhost:8080",
   ),
 
   mockLatencyMs: Number(

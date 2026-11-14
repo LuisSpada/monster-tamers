@@ -32,10 +32,10 @@ class GatewayRoutesTests {
                 .block();
 
         assertThat(routes).containsKeys("auth-service", "player-service", "monster-service", "encounter-service");
-        assertThat(routes.get("auth-service").getUri().toString()).isEqualTo("http://auth-service:8081");
-        assertThat(routes.get("player-service").getUri().toString()).isEqualTo("http://player-service:8082");
-        assertThat(routes.get("monster-service").getUri().toString()).isEqualTo("http://monster-service:8083");
-        assertThat(routes.get("encounter-service").getUri().toString()).isEqualTo("http://encounter-service:8084");
+        assertThat(routes.get("auth-service").getUri().toString()).isEqualTo("https://auth-service:8081");
+        assertThat(routes.get("player-service").getUri().toString()).isEqualTo("https://player-service:8082");
+        assertThat(routes.get("monster-service").getUri().toString()).isEqualTo("https://monster-service:8083");
+        assertThat(routes.get("encounter-service").getUri().toString()).isEqualTo("https://encounter-service:8084");
     }
 
     @Test
@@ -50,10 +50,10 @@ class GatewayRoutesTests {
 
     @ParameterizedTest
     @CsvSource({
-            "auth-service-docs,      http://auth-service:8081",
-            "player-service-docs,    http://player-service:8082",
-            "monster-service-docs,   http://monster-service:8083",
-            "encounter-service-docs, http://encounter-service:8084"
+            "auth-service-docs,      https://auth-service:8081",
+            "player-service-docs,    https://player-service:8082",
+            "monster-service-docs,   https://monster-service:8083",
+            "encounter-service-docs, https://encounter-service:8084"
     })
     void docsRouteTargetsServiceDocs(String routeId, String uri) {
         Route route = routeLocator.getRoutes()

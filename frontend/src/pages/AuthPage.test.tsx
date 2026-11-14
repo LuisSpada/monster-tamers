@@ -105,25 +105,42 @@ afterEach(() => {
 
 describe("AuthPage", () => {
   it("logs in, stores the token and redirects home", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            accessToken: "signed-access-token",
-          }),
-          {
-            status: 200,
-            headers: {
-              "Content-Type": "application/json",
-            },
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          accessToken: "signed-access-token",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
           },
-        ),
+        },
       ),
     );
 
+    vi.stubGlobal("fetch", fetchMock);
+
     renderLogin();
     fillAndSubmitLogin();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://localhost:8080/api/auth/login",
+        expect.objectContaining({
+          method: "POST",
+          credentials: "include",
+          headers: expect.objectContaining({
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify({
+            email: "tamer@example.com",
+            password: "secret-password",
+          }),
+        }),
+      );
+    });
 
     await waitFor(() => {
       expect(getAccessToken()).toBe(
@@ -131,9 +148,11 @@ describe("AuthPage", () => {
       );
     });
 
-    expect(
-      screen.getByTestId("location"),
-    ).toHaveTextContent("/");
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("location"),
+      ).toHaveTextContent("/");
+    });
   });
 
   it("returns to the requested route after login", async () => {
@@ -167,6 +186,10 @@ describe("AuthPage", () => {
         "/collection?class=Fighter#owned",
       );
     });
+
+    expect(getAccessToken()).toBe(
+      "signed-access-token",
+    );
   });
 
   it("shows invalid-credentials Problem Details", async () => {

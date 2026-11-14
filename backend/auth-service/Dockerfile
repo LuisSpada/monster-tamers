@@ -1,8 +1,10 @@
 FROM maven:3.9.11-eclipse-temurin-21-alpine AS build
 
 WORKDIR /workspace
+
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
+
 COPY shared-contracts/pom.xml shared-contracts/pom.xml
 COPY shared-web/pom.xml shared-web/pom.xml
 COPY auth-service/pom.xml auth-service/pom.xml
@@ -11,23 +13,57 @@ COPY player-service/pom.xml player-service/pom.xml
 COPY monster-service/pom.xml monster-service/pom.xml
 COPY encounter-service/pom.xml encounter-service/pom.xml
 COPY simulator-service/pom.xml simulator-service/pom.xml
-RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
+
+RUN sed -i 's/\r$//' mvnw \
+    && chmod +x mvnw
+
 COPY shared-contracts/src shared-contracts/src
 COPY shared-web/src shared-web/src
 COPY auth-service/src auth-service/src
-RUN ./mvnw -pl auth-service -am package -DskipTests
 
-RUN find auth-service/target -maxdepth 1 -type f -name '*.jar' ! -name '*.original' -exec cp {} /workspace/service.jar \;
+RUN ./mvnw \
+    -pl auth-service \
+    -am \
+    package \
+    -DskipTests
+
+RUN find auth-service/target \
+    -maxdepth 1 \
+    -type f \
+    -name '*.jar' \
+    ! -name '*.original' \
+    -exec cp {} /workspace/service.jar \;
+
 
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
+
 RUN apk add --no-cache wget \
     && addgroup -S app \
     && adduser -S -G app app
+
 COPY --from=build /workspace/service.jar /app/service.jar
+
 USER app
+
 ENV SERVER_PORT=8081
-HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${SERVER_PORT}/actuator/health" || exit 1
-ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=$SERVER_PORT -jar /app/service.jar"]
+ENV SERVER_SSL_ENABLED=true
+ENV SERVER_SSL_KEY_STORE=/run/tls/server.p12
+ENV SERVER_SSL_KEY_STORE_TYPE=PKCS12
+ENV SERVER_SSL_KEY_ALIAS=auth-service
+
+HEALTHCHECK \
+    --interval=30s \
+    --timeout=5s \
+    --start-period=30s \
+    --retries=3 \
+    CMD wget \
+        --ca-certificate=/run/tls/ca.crt \
+        --no-verbose \
+        --tries=1 \
+        --spider \
+        "https://127.0.0.1:${SERVER_PORT}/actuator/health" \
+        || exit 1
+
+ENTRYPOINT ["sh", "-c", "if [ ! -f /run/secrets/tls_password ]; then echo 'Missing TLS password secret' >&2; exit 1; fi; TLS_PASSWORD=\"$(cat /run/secrets/tls_password)\"; export SERVER_SSL_KEY_STORE_PASSWORD=\"$TLS_PASSWORD\"; export TLS_TRUST_STORE_PASSWORD=\"$TLS_PASSWORD\"; export JAVA_TOOL_OPTIONS=\"${JAVA_TOOL_OPTIONS:-} -Djavax.net.ssl.trustStore=$TLS_TRUST_STORE -Djavax.net.ssl.trustStoreType=$TLS_TRUST_STORE_TYPE -Djavax.net.ssl.trustStorePassword=$TLS_PASSWORD\"; exec java -Dserver.port=\"$SERVER_PORT\" -jar /app/service.jar"]

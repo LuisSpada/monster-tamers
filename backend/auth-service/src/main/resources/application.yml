@@ -21,7 +21,7 @@ app:
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:15m}
 
   player:
-    base-url: ${PLAYER_BASE_URL:http://localhost:8082}
+    base-url: ${PLAYER_BASE_URL:https://localhost:8082}
     connect-timeout: ${PLAYER_CONNECT_TIMEOUT:2s}
     read-timeout: ${PLAYER_READ_TIMEOUT:3s}
 
@@ -50,7 +50,13 @@ springdoc:
     operations-sorter: alpha
 
 server:
-  port: ${AUTH_PORT:8081}
+  port: ${SERVER_PORT:8081}
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    key-store: ${SERVER_SSL_KEY_STORE:}
+    key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
+    key-alias: ${SERVER_SSL_KEY_ALIAS:}
 
 management:
   endpoints:

@@ -5,27 +5,51 @@ services:
       dockerfile: gateway-service/Dockerfile
     environment:
       SERVER_PORT: 8080
-      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:8081}
-      PLAYER_SERVICE_URL: ${PLAYER_SERVICE_URL:-http://player-service:8082}
-      MONSTER_SERVICE_URL: ${MONSTER_SERVICE_URL:-http://monster-service:8083}
-      ENCOUNTER_SERVICE_URL: ${ENCOUNTER_SERVICE_URL:-http://encounter-service:8084}
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: /run/tls/server.p12
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_ALIAS: gateway-service
+      TLS_TRUST_STORE: /run/tls/truststore.p12
+      TLS_TRUST_STORE_TYPE: PKCS12
+
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-https://auth-service:8081}
+      PLAYER_SERVICE_URL: ${PLAYER_SERVICE_URL:-https://player-service:8082}
+      MONSTER_SERVICE_URL: ${MONSTER_SERVICE_URL:-https://monster-service:8083}
+      ENCOUNTER_SERVICE_URL: ${ENCOUNTER_SERVICE_URL:-https://encounter-service:8084}
+
       GATEWAY_CORS_ORIGIN_5173: ${GATEWAY_CORS_ORIGIN_5173:-http://localhost:5173}
       GATEWAY_CORS_ORIGIN_3000: ${GATEWAY_CORS_ORIGIN_3000:-http://localhost:3000}
     ports:
       - "8080:8080"
+    volumes:
+      - ../infrastructure/runtime/tls/gateway-service/server.p12:/run/tls/server.p12:ro
+      - ../infrastructure/runtime/tls/truststore.p12:/run/tls/truststore.p12:ro
+      - ../infrastructure/runtime/tls/ca.crt:/run/tls/ca.crt:ro
+    secrets:
+      - tls_password
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      player-service:
+        condition: service_healthy
+      monster-service:
+        condition: service_healthy
+      encounter-service:
+        condition: service_healthy
     networks:
       - backend
     healthcheck:
       test:
         - CMD
         - wget
+        - --ca-certificate=/run/tls/ca.crt
         - --no-verbose
         - --tries=1
         - --spider
-        - http://127.0.0.1:8080/actuator/health
+        - https://127.0.0.1:8080/actuator/health
       interval: 30s
       timeout: 5s
-      start_period: 20s
+      start_period: 30s
       retries: 3
 
   auth-service:
@@ -34,11 +58,19 @@ services:
       dockerfile: auth-service/Dockerfile
     environment:
       SERVER_PORT: 8081
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: /run/tls/server.p12
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_ALIAS: auth-service
+      TLS_TRUST_STORE: /run/tls/truststore.p12
+      TLS_TRUST_STORE_TYPE: PKCS12
+
       AUTH_DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-monster_tamers_auth}
       AUTH_DATABASE_USERNAME: ${POSTGRES_USER:-monster_tamers_auth}
       AUTH_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-change-me-development-only}
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
-      PLAYER_BASE_URL: http://player-service:8082
+
+      PLAYER_BASE_URL: ${PLAYER_BASE_URL:-https://player-service:8082}
 
       MAIL_MODE: ${MAIL_MODE:-logging}
       MAIL_HOST: ${MAIL_HOST:-}
@@ -51,8 +83,16 @@ services:
       MAIL_CONNECTION_TIMEOUT_MS: ${MAIL_CONNECTION_TIMEOUT_MS:-5000}
       MAIL_READ_TIMEOUT_MS: ${MAIL_READ_TIMEOUT_MS:-5000}
       MAIL_WRITE_TIMEOUT_MS: ${MAIL_WRITE_TIMEOUT_MS:-5000}
+    volumes:
+      - ../infrastructure/runtime/tls/auth-service/server.p12:/run/tls/server.p12:ro
+      - ../infrastructure/runtime/tls/truststore.p12:/run/tls/truststore.p12:ro
+      - ../infrastructure/runtime/tls/ca.crt:/run/tls/ca.crt:ro
+    secrets:
+      - tls_password
     depends_on:
       postgres:
+        condition: service_healthy
+      player-service:
         condition: service_healthy
     networks:
       - backend
@@ -60,10 +100,11 @@ services:
       test:
         - CMD
         - wget
+        - --ca-certificate=/run/tls/ca.crt
         - --no-verbose
         - --tries=1
         - --spider
-        - http://127.0.0.1:8081/actuator/health
+        - https://127.0.0.1:8081/actuator/health
       interval: 30s
       timeout: 5s
       start_period: 30s
@@ -75,13 +116,30 @@ services:
       dockerfile: player-service/Dockerfile
     environment:
       SERVER_PORT: 8082
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: /run/tls/server.p12
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_ALIAS: player-service
+      TLS_TRUST_STORE: /run/tls/truststore.p12
+      TLS_TRUST_STORE_TYPE: PKCS12
+
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
+
       PLAYER_DATABASE_URL: jdbc:postgresql://player-postgres:5432/${PLAYER_POSTGRES_DB:-monster_tamers_player}
       PLAYER_DATABASE_USERNAME: ${PLAYER_POSTGRES_USER:-monster_tamers_player}
       PLAYER_DATABASE_PASSWORD: ${PLAYER_POSTGRES_PASSWORD:-change-me-development-only}
-      MONSTER_BASE_URL: http://monster-service:8083
+
+      MONSTER_BASE_URL: ${MONSTER_BASE_URL:-https://monster-service:8083}
+    volumes:
+      - ../infrastructure/runtime/tls/player-service/server.p12:/run/tls/server.p12:ro
+      - ../infrastructure/runtime/tls/truststore.p12:/run/tls/truststore.p12:ro
+      - ../infrastructure/runtime/tls/ca.crt:/run/tls/ca.crt:ro
+    secrets:
+      - tls_password
     depends_on:
       player-postgres:
+        condition: service_healthy
+      monster-service:
         condition: service_healthy
     networks:
       - backend
@@ -89,13 +147,14 @@ services:
       test:
         - CMD
         - wget
+        - --ca-certificate=/run/tls/ca.crt
         - --no-verbose
         - --tries=1
         - --spider
-        - http://127.0.0.1:8082/actuator/health
+        - https://127.0.0.1:8082/actuator/health
       interval: 30s
       timeout: 5s
-      start_period: 20s
+      start_period: 30s
       retries: 3
 
   monster-service:
@@ -104,10 +163,21 @@ services:
       dockerfile: monster-service/Dockerfile
     environment:
       SERVER_PORT: 8083
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: /run/tls/server.p12
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_ALIAS: monster-service
+
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
+
       MONSTER_DATABASE_URL: jdbc:postgresql://monster-postgres:5432/${MONSTER_POSTGRES_DB:-monster_tamers_monster}
       MONSTER_DATABASE_USERNAME: ${MONSTER_POSTGRES_USER:-monster_tamers_monster}
       MONSTER_DATABASE_PASSWORD: ${MONSTER_POSTGRES_PASSWORD:-change-me-development-only}
+    volumes:
+      - ../infrastructure/runtime/tls/monster-service/server.p12:/run/tls/server.p12:ro
+      - ../infrastructure/runtime/tls/ca.crt:/run/tls/ca.crt:ro
+    secrets:
+      - tls_password
     depends_on:
       monster-postgres:
         condition: service_healthy
@@ -117,13 +187,14 @@ services:
       test:
         - CMD
         - wget
+        - --ca-certificate=/run/tls/ca.crt
         - --no-verbose
         - --tries=1
         - --spider
-        - http://127.0.0.1:8083/actuator/health
+        - https://127.0.0.1:8083/actuator/health
       interval: 30s
       timeout: 5s
-      start_period: 20s
+      start_period: 30s
       retries: 3
 
   encounter-service:
@@ -132,12 +203,28 @@ services:
       dockerfile: encounter-service/Dockerfile
     environment:
       SERVER_PORT: 8084
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: /run/tls/server.p12
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_ALIAS: encounter-service
+      TLS_TRUST_STORE: /run/tls/truststore.p12
+      TLS_TRUST_STORE_TYPE: PKCS12
+
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
+
       ENCOUNTER_DATABASE_URL: jdbc:postgresql://encounter-postgres:5432/${ENCOUNTER_POSTGRES_DB:-monster_tamers_encounter}
       ENCOUNTER_DATABASE_USERNAME: ${ENCOUNTER_POSTGRES_USER:-monster_tamers_encounter}
       ENCOUNTER_DATABASE_PASSWORD: ${ENCOUNTER_POSTGRES_PASSWORD:-change-me-development-only}
+    volumes:
+      - ../infrastructure/runtime/tls/encounter-service/server.p12:/run/tls/server.p12:ro
+      - ../infrastructure/runtime/tls/truststore.p12:/run/tls/truststore.p12:ro
+      - ../infrastructure/runtime/tls/ca.crt:/run/tls/ca.crt:ro
+    secrets:
+      - tls_password
     depends_on:
       encounter-postgres:
+        condition: service_healthy
+      simulator-service:
         condition: service_healthy
     networks:
       - backend
@@ -145,13 +232,14 @@ services:
       test:
         - CMD
         - wget
+        - --ca-certificate=/run/tls/ca.crt
         - --no-verbose
         - --tries=1
         - --spider
-        - http://127.0.0.1:8084/actuator/health
+        - https://127.0.0.1:8084/actuator/health
       interval: 30s
       timeout: 5s
-      start_period: 20s
+      start_period: 30s
       retries: 3
 
   simulator-service:
@@ -160,20 +248,31 @@ services:
       dockerfile: simulator-service/Dockerfile
     environment:
       SERVER_PORT: 8085
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: /run/tls/server.p12
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_ALIAS: simulator-service
+
       JWT_SECRET: ${JWT_SECRET:-change-me-development-only-jwt-secret}
+    volumes:
+      - ../infrastructure/runtime/tls/simulator-service/server.p12:/run/tls/server.p12:ro
+      - ../infrastructure/runtime/tls/ca.crt:/run/tls/ca.crt:ro
+    secrets:
+      - tls_password
     networks:
       - backend
     healthcheck:
       test:
         - CMD
         - wget
+        - --ca-certificate=/run/tls/ca.crt
         - --no-verbose
         - --tries=1
         - --spider
-        - http://127.0.0.1:8085/actuator/health
+        - https://127.0.0.1:8085/actuator/health
       interval: 30s
       timeout: 5s
-      start_period: 20s
+      start_period: 30s
       retries: 3
 
   postgres:
@@ -257,3 +356,7 @@ volumes:
   player-postgres-data:
   monster-postgres-data:
   encounter-postgres-data:
+
+secrets:
+  tls_password:
+    file: ../infrastructure/runtime/tls/tls-password.txt
