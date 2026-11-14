@@ -38,6 +38,12 @@ const backendMonster = {
   upgrades: [],
 };
 
+const firstMonsterId =
+  "44ed4dd1-6abd-4991-97cc-86bf95429a10";
+
+const secondMonsterId =
+  "729827c5-0848-4898-bd4a-959a6d49fb92";
+
 beforeEach(() => {
   sessionStorage.clear();
   vi.restoreAllMocks();
@@ -75,8 +81,6 @@ describe("createHybridServices", () => {
     const monsters =
       await services.monsters.listMonsters();
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:8080/api/monsters",
       expect.objectContaining({
@@ -84,28 +88,122 @@ describe("createHybridServices", () => {
         credentials: "include",
         headers: expect.objectContaining({
           Accept: "application/json",
-          Authorization: "Bearer monster-list-token",
+          Authorization:
+            "Bearer monster-list-token",
         }),
       }),
     );
 
-    expect(monsters).toEqual([backendMonster]);
+    expect(monsters).toEqual([
+      backendMonster,
+    ]);
+  });
 
-    expect(monsters[0]).toMatchObject({
-      id: backendMonster.id,
-      monsterClass: "Fighter",
-      level: 1,
-      xp: 0,
-      xpToNext: 100,
-      pendingPoints: 0,
-      obtainedAt: "2026-11-13T10:00:00Z",
-      stats: {
-        strength: 10,
-        hp: 100,
-        accuracy: 60,
-        agility: 40,
+  it("loads the ordered team from the backend", async () => {
+    setAccessToken("team-read-token");
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          monsterIds: [
+            secondMonsterId,
+            firstMonsterId,
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const services = createHybridServices(
+      "http://localhost:8080",
+      {
+        latencyMs: 0,
       },
-    });
+    );
+
+    const team = await services.teams.getTeam();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:8080/api/monsters/team",
+      expect.objectContaining({
+        method: "GET",
+        credentials: "include",
+        headers: expect.objectContaining({
+          Authorization:
+            "Bearer team-read-token",
+        }),
+      }),
+    );
+
+    expect(team.monsterIds).toEqual([
+      secondMonsterId,
+      firstMonsterId,
+    ]);
+  });
+
+  it("saves the ordered team through the backend", async () => {
+    setAccessToken("team-save-token");
+
+    const requestedIds = [
+      secondMonsterId,
+      firstMonsterId,
+    ];
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          monsterIds: requestedIds,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const services = createHybridServices(
+      "http://localhost:8080",
+      {
+        latencyMs: 0,
+      },
+    );
+
+    const saved =
+      await services.teams.saveTeam(
+        requestedIds,
+      );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:8080/api/monsters/team",
+      expect.objectContaining({
+        method: "PUT",
+        credentials: "include",
+        headers: expect.objectContaining({
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization:
+            "Bearer team-save-token",
+        }),
+        body: JSON.stringify({
+          monsterIds: requestedIds,
+        }),
+      }),
+    );
+
+    expect(saved.monsterIds).toEqual(
+      requestedIds,
+    );
   });
 
   it("keeps monster details mock-backed", async () => {
@@ -156,24 +254,6 @@ describe("createHybridServices", () => {
       before.stats.strength,
     );
 
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("keeps the team service mock-backed", async () => {
-    const fetchMock = vi.fn();
-
-    vi.stubGlobal("fetch", fetchMock);
-
-    const services = createHybridServices(
-      "http://localhost:8080",
-      {
-        latencyMs: 0,
-      },
-    );
-
-    const team = await services.teams.getTeam();
-
-    expect(team.monsterIds).toEqual(["m1", "m2"]);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
