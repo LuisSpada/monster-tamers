@@ -144,7 +144,7 @@ describe("RegistrationPage", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:8080/api/auth/registrations",
+      "https://localhost:8080/api/auth/registrations",
       expect.objectContaining({
         method: "POST",
         credentials: "include",

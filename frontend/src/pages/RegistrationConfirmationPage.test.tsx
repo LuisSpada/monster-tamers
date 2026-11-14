@@ -216,7 +216,7 @@ describe("RegistrationConfirmationPage", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:8080/api/auth/registrations/d0775e50-aad9-4fd3-a016-c6efa18df154/confirmation",
+      "https://localhost:8080/api/auth/registrations/d0775e50-aad9-4fd3-a016-c6efa18df154/confirmation",
       expect.objectContaining({
         method: "POST",
         credentials: "include",

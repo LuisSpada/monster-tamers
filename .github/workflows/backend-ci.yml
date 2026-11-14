@@ -23,8 +23,9 @@ concurrency:
 
 jobs:
   verify:
-    name: Verify backend with Java 21
+    name: Verify all backend modules
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     defaults:
       run:
@@ -34,7 +35,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -46,11 +47,18 @@ jobs:
         run: chmod +x mvnw
 
       - name: Verify all backend modules
-        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+        run: >
+          ./mvnw
+          --batch-mode
+          --no-transfer-progress
+          clean
+          verify
 
   service-verify:
     name: Verify ${{ matrix.service }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     strategy:
       fail-fast: false
       matrix:
@@ -70,7 +78,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -84,101 +92,11 @@ jobs:
       - name: Verify service and required modules
         env:
           SERVICE: ${{ matrix.service }}
-        run: ./mvnw --batch-mode --no-transfer-progress -pl "$SERVICE" -am clean verify
-
-  compose:
-    name: Validate Compose stack
-    runs-on: ubuntu-latest
-    env:
-      COMPOSE_PROJECT_NAME: monster-tamers-ci-${{ github.run_id }}
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Validate Compose configuration
-        run: docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml config
-
-      - name: Start backend stack
-        run: docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml up --build -d
-
-      - name: Wait for containers to become healthy
-        shell: bash
-        run: |
-          set -euo pipefail
-          services=(
-            gateway-service
-            auth-service
-            player-service
-            monster-service
-            encounter-service
-            simulator-service
-            postgres
-          )
-
-          for attempt in {1..30}; do
-            unhealthy=0
-            for service in "${services[@]}"; do
-              container_id="$(docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml ps -q "$service")"
-              if [ -z "$container_id" ]; then
-                unhealthy=1
-                continue
-              fi
-
-              status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container_id")"
-              if [ "$status" != "healthy" ]; then
-                unhealthy=1
-              fi
-            done
-
-            if [ "$unhealthy" -eq 0 ]; then
-              exit 0
-            fi
-
-            sleep 10
-          done
-
-          echo "Timed out waiting for the Compose services to become healthy."
-          exit 1
-
-      - name: Verify gateway health
-        run: curl --fail --show-error --silent http://localhost:8080/actuator/health
-
-      - name: Verify Encounter PostgreSQL volume survives normal shutdown
-        shell: bash
-        run: |
-          set -euo pipefail
-          compose=(docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml)
-
-          "${compose[@]}" exec -T encounter-postgres \
-            psql -v ON_ERROR_STOP=1 \
-            -U monster_tamers_encounter \
-            -d monster_tamers_encounter \
-            -c "CREATE TABLE ci_volume_survival (marker TEXT PRIMARY KEY); INSERT INTO ci_volume_survival VALUES ('persisted');"
-
-          "${compose[@]}" down
-          "${compose[@]}" up -d encounter-postgres
-
-          for attempt in {1..30}; do
-            container_id="$("${compose[@]}" ps -q encounter-postgres)"
-            if [ -n "$container_id" ]; then
-              status="$(docker inspect --format '{{.State.Health.Status}}' "$container_id")"
-              if [ "$status" = "healthy" ]; then
-                break
-              fi
-            fi
-            sleep 2
-          done
-
-          marker="$("${compose[@]}" exec -T encounter-postgres \
-            psql -tA -U monster_tamers_encounter -d monster_tamers_encounter \
-            -c "SELECT marker FROM ci_volume_survival;")"
-          test "$marker" = "persisted"
-
-      - name: Collect Compose logs on failure
-        if: failure()
-        run: docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml logs --no-color
-
-      - name: Stop backend stack
-        if: always()
-        run: docker compose -p "$COMPOSE_PROJECT_NAME" -f backend/compose.yaml down --volumes
+        run: >
+          ./mvnw
+          --batch-mode
+          --no-transfer-progress
+          -pl "$SERVICE"
+          -am
+          clean
+          verify

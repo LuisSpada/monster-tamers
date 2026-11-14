@@ -115,7 +115,7 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const baseUrl = String(
     import.meta.env.VITE_API_BASE_URL ??
-      "http://localhost:8080/api",
+      "https://localhost:8080/api",
   );
 
   let response: Response;

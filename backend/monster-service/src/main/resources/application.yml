@@ -1,29 +1,43 @@
 spring:
   application:
     name: monster-service
+
   datasource:
     url: ${MONSTER_DATABASE_URL:jdbc:postgresql://localhost:5432/monster_tamers_monster}
     username: ${MONSTER_DATABASE_USERNAME:monster_tamers_monster}
     password: ${MONSTER_DATABASE_PASSWORD:change-me}
+
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
   flyway:
     enabled: true
+
 app:
   jwt:
     secret: ${JWT_SECRET:}
+
 springdoc:
   api-docs:
     enabled: ${API_DOCS_ENABLED:true}
+
   swagger-ui:
     enabled: ${API_DOCS_ENABLED:true}
     doc-expansion: none
     tags-sorter: alpha
     operations-sorter: alpha
+
 server:
-  port: ${MONSTER_PORT:8083}
+  port: ${SERVER_PORT:8083}
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    key-store: ${SERVER_SSL_KEY_STORE:}
+    key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
+    key-alias: ${SERVER_SSL_KEY_ALIAS:}
+
 management:
   endpoints:
     web:

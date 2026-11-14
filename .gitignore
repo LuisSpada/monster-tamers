@@ -82,3 +82,15 @@ Icon?
 vite.config.js
 vite.config.d.ts
 /build/
+
+# Generated local TLS material
+/infrastructure/runtime/tls/
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+*.key
+*.csr
+*.srl
+tls-password.txt
