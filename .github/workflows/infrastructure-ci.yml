@@ -51,6 +51,37 @@ jobs:
             -Password $password `
             -Force
 
+      - name: Make mounted TLS stores container-readable
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          chmod 644 \
+            infrastructure/runtime/tls/ca.crt \
+            infrastructure/runtime/tls/truststore.p12 \
+            infrastructure/runtime/tls/tls-password.txt
+
+          find infrastructure/runtime/tls \
+            -mindepth 2 \
+            -maxdepth 2 \
+            -type f \
+            -name "server.p12" \
+            -exec chmod 644 {} \;
+
+          find infrastructure/runtime/tls \
+            -mindepth 2 \
+            -maxdepth 2 \
+            -type f \
+            -name "server.crt" \
+            -exec chmod 644 {} \;
+
+          stat \
+            --format="%a %n" \
+            infrastructure/runtime/tls/simulator-service/server.p12 \
+            infrastructure/runtime/tls/ca.crt \
+            infrastructure/runtime/tls/truststore.p12 \
+            infrastructure/runtime/tls/tls-password.txt
+
       - name: Validate generated TLS stores
         shell: bash
         run: |
@@ -152,7 +183,7 @@ jobs:
         run: |
           docker compose \
             -f backend/compose.yaml \
-            ps -a
+            ps -a || true
 
           echo "Simulator logs:"
 
@@ -161,7 +192,7 @@ jobs:
             logs \
             --no-color \
             --tail 200 \
-            simulator-service
+            simulator-service || true
 
           echo "Simulator container state and mounts:"
 
@@ -175,11 +206,13 @@ jobs:
             docker inspect \
               "$container_id" \
               --format \
-              'Exit={{.State.ExitCode}} Error={{.State.Error}}'
+              'Exit={{.State.ExitCode}} Error={{.State.Error}}' \
+              || true
 
             docker inspect \
               "$container_id" \
-              --format '{{json .Mounts}}'
+              --format '{{json .Mounts}}' \
+              || true
           fi
 
       - name: Fail when Compose startup failed
@@ -287,13 +320,13 @@ jobs:
         run: |
           docker compose \
             -f backend/compose.yaml \
-            ps -a
+            ps -a || true
 
           docker compose \
             -f backend/compose.yaml \
             logs \
             --no-color \
-            --tail 200
+            --tail 200 || true
 
       - name: Stop stack
         if: always()
