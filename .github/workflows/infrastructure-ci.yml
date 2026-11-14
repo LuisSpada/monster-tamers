@@ -51,10 +51,14 @@ jobs:
             -Password $password `
             -Force
 
-      - name: Make mounted TLS stores container-readable
+      - name: Make mounted TLS paths container-readable
         shell: bash
         run: |
           set -euo pipefail
+
+          find infrastructure/runtime/tls \
+            -type d \
+            -exec chmod 755 {} \;
 
           chmod 644 \
             infrastructure/runtime/tls/ca.crt \
@@ -65,18 +69,20 @@ jobs:
             -mindepth 2 \
             -maxdepth 2 \
             -type f \
-            -name "server.p12" \
+            \( -name "server.p12" -o -name "server.crt" \) \
             -exec chmod 644 {} \;
+
+          echo "TLS directory permissions:"
 
           find infrastructure/runtime/tls \
-            -mindepth 2 \
             -maxdepth 2 \
-            -type f \
-            -name "server.crt" \
-            -exec chmod 644 {} \;
+            -type d \
+            -printf "%m %p\n"
+
+          echo "Mounted TLS file permissions:"
 
           stat \
-            --format="%a %n" \
+            --format="%a %U:%G %n" \
             infrastructure/runtime/tls/simulator-service/server.p12 \
             infrastructure/runtime/tls/ca.crt \
             infrastructure/runtime/tls/truststore.p12 \
@@ -167,6 +173,35 @@ jobs:
           docker compose \
             -f backend/compose.yaml \
             build
+
+      - name: Verify TLS mounts as non-root container user
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f backend/compose.yaml \
+            run \
+            --rm \
+            --no-deps \
+            --entrypoint sh \
+            simulator-service \
+            -c '
+              echo "Container user:"
+              id
+
+              echo "Mounted paths:"
+              ls -ld /run /run/tls /run/secrets
+              ls -l /run/tls/server.p12
+              ls -l /run/tls/ca.crt
+              ls -l /run/secrets/tls_password
+
+              test -r /run/tls/server.p12
+              test -r /run/tls/ca.crt
+              test -r /run/secrets/tls_password
+
+              echo "All Simulator TLS mounts are readable."
+            '
 
       - name: Start HTTPS stack
         id: compose-up
