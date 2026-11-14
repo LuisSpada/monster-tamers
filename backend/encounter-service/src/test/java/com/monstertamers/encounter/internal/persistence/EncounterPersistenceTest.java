@@ -21,39 +21,82 @@ class EncounterPersistenceTest {
     private EncounterRepository encounterRepository;
 
     @Autowired
-    private EncounterOpponentRepository opponentRepository;
+    private EncounterOpponentRepository
+            opponentRepository;
 
     @Autowired
-    private AccountEncounterProgressRepository progressRepository;
+    private AccountEncounterProgressRepository
+            progressRepository;
 
     @Test
     void flywaySeedsFrontendEncounterCatalogue() {
-        var encounters = encounterRepository.findAllByOrderByOrderAsc();
+        var encounters =
+                encounterRepository
+                        .findAllByOrderByOrderAsc();
 
         assertThat(encounters).hasSize(5);
-        assertThat(encounters.get(0).getName()).isEqualTo("Meadow Scouts");
-        assertThat(encounters.get(0).getEggChance()).isEqualTo(20);
-        assertThat(encounters.get(0).getRewardClasses())
-                .containsExactly("Fighter", "Trickster");
-        assertThat(opponentRepository.findAllByEncounterId(encounters.get(0).getId()))
+
+        var firstEncounter = encounters.getFirst();
+
+        assertThat(firstEncounter.getName())
+                .isEqualTo("Meadow Scouts");
+
+        assertThat(firstEncounter.getEggChance())
+                .isEqualTo(20);
+
+        assertThat(firstEncounter.getRewardClasses())
+                .containsExactly(
+                        "Fighter",
+                        "Trickster"
+                );
+
+        assertThat(
+                opponentRepository
+                        .findAllByEncounterIdOrderByIdAsc(
+                                firstEncounter.getId()
+                        )
+        )
                 .extracting("name")
-                .containsExactly("Meadow Pup", "Field Mouse");
+                .containsExactly(
+                        "Meadow Pup",
+                        "Field Mouse"
+                );
     }
 
     @Test
     void progressIsStoredPerAccountAndEncounter() {
         UUID accountId = UUID.randomUUID();
-        UUID encounterId = encounterRepository.findAllByOrderByOrderAsc().get(0).getId();
-        AccountEncounterProgress progress = new AccountEncounterProgress();
+
+        UUID encounterId =
+                encounterRepository
+                        .findAllByOrderByOrderAsc()
+                        .getFirst()
+                        .getId();
+
+        AccountEncounterProgress progress =
+                new AccountEncounterProgress();
+
         progress.setAccountId(accountId);
         progress.setEncounterId(encounterId);
-        progress.setStatus(EncounterStatus.available);
+        progress.setStatus(
+                EncounterStatus.available
+        );
 
         progressRepository.saveAndFlush(progress);
 
-        assertThat(progressRepository.findByAccountIdAndEncounterId(accountId, encounterId))
+        assertThat(
+                progressRepository
+                        .findByAccountIdAndEncounterId(
+                                accountId,
+                                encounterId
+                        )
+        )
                 .get()
-                .extracting(AccountEncounterProgress::getStatus)
-                .isEqualTo(EncounterStatus.available);
+                .extracting(
+                        AccountEncounterProgress::getStatus
+                )
+                .isEqualTo(
+                        EncounterStatus.available
+                );
     }
 }

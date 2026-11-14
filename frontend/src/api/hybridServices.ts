@@ -12,8 +12,11 @@ import {
  * - monsters.listMonsters()
  * - teams.getTeam()
  * - teams.saveTeam()
+ * - encounters.listEncounters()
+ * - encounters.getEncounter()
  *
- * All other operations remain mock-backed.
+ * Player progress, monster details, stat spending,
+ * battles and history remain mock-backed.
  */
 export function createHybridServices(
   baseUrl: string,
@@ -37,6 +40,14 @@ export function createHybridServices(
     teams: {
       getTeam: httpServices.teams.getTeam,
       saveTeam: httpServices.teams.saveTeam,
+    },
+
+    encounters: {
+      listEncounters:
+        httpServices.encounters.listEncounters,
+
+      getEncounter:
+        httpServices.encounters.getEncounter,
     },
   };
 }

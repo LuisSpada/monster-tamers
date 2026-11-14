@@ -9,6 +9,8 @@ import {
 import { setAccessToken } from "./authSession";
 import { createHybridServices } from "./hybridServices";
 
+const baseUrl = "http://localhost:8080";
+
 const backendMonster = {
   id: "44ed4dd1-6abd-4991-97cc-86bf95429a10",
   name: "Backend Fox",
@@ -44,6 +46,35 @@ const firstMonsterId =
 const secondMonsterId =
   "729827c5-0848-4898-bd4a-959a6d49fb92";
 
+const firstEncounterId =
+  "00000000-0000-0000-0000-000000000001";
+
+const secondEncounterId =
+  "00000000-0000-0000-0000-000000000002";
+
+const backendEncounter = {
+  id: firstEncounterId,
+  order: 1,
+  name: "Meadow Scouts",
+  description: "A gentle first encounter.",
+  eggChance: 20,
+  rewardClasses: [
+    "Fighter",
+    "Trickster",
+  ] as const,
+  isFinalBoss: false,
+  status: "available" as const,
+  opponents: [
+    {
+      id: "10000000-0000-0000-0000-000000000001",
+      name: "Meadow Pup",
+      monsterClass: "Fighter" as const,
+      level: 1,
+      avatarVariant: 0,
+    },
+  ],
+};
+
 beforeEach(() => {
   sessionStorage.clear();
   vi.restoreAllMocks();
@@ -72,7 +103,7 @@ describe("createHybridServices", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const services = createHybridServices(
-      "http://localhost:8080",
+      baseUrl,
       {
         latencyMs: 0,
       },
@@ -82,7 +113,7 @@ describe("createHybridServices", () => {
       await services.monsters.listMonsters();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:8080/api/monsters",
+      `${baseUrl}/api/monsters`,
       expect.objectContaining({
         method: "GET",
         credentials: "include",
@@ -122,20 +153,22 @@ describe("createHybridServices", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const services = createHybridServices(
-      "http://localhost:8080",
+      baseUrl,
       {
         latencyMs: 0,
       },
     );
 
-    const team = await services.teams.getTeam();
+    const team =
+      await services.teams.getTeam();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:8080/api/monsters/team",
+      `${baseUrl}/api/monsters/team`,
       expect.objectContaining({
         method: "GET",
         credentials: "include",
         headers: expect.objectContaining({
+          Accept: "application/json",
           Authorization:
             "Bearer team-read-token",
         }),
@@ -173,7 +206,7 @@ describe("createHybridServices", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const services = createHybridServices(
-      "http://localhost:8080",
+      baseUrl,
       {
         latencyMs: 0,
       },
@@ -185,7 +218,7 @@ describe("createHybridServices", () => {
       );
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:8080/api/monsters/team",
+      `${baseUrl}/api/monsters/team`,
       expect.objectContaining({
         method: "PUT",
         credentials: "include",
@@ -206,22 +239,162 @@ describe("createHybridServices", () => {
     );
   });
 
+  it("loads encounters from the backend", async () => {
+    setAccessToken("encounter-list-token");
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([backendEncounter]),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const services = createHybridServices(
+      baseUrl,
+      {
+        latencyMs: 0,
+      },
+    );
+
+    const encounters =
+      await services.encounters.listEncounters();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${baseUrl}/api/encounters`,
+      expect.objectContaining({
+        method: "GET",
+        credentials: "include",
+        headers: expect.objectContaining({
+          Accept: "application/json",
+          Authorization:
+            "Bearer encounter-list-token",
+        }),
+      }),
+    );
+
+    expect(encounters).toEqual([
+      backendEncounter,
+    ]);
+
+    expect(encounters[0]).toMatchObject({
+      order: 1,
+      status: "available",
+      rewardClasses: [
+        "Fighter",
+        "Trickster",
+      ],
+    });
+  });
+
+  it("loads encounter details from the backend", async () => {
+    setAccessToken(
+      "encounter-detail-token",
+    );
+
+    const detailEncounter = {
+      id: secondEncounterId,
+      order: 2,
+      name: "Old Quarry",
+      description:
+        "Tough defenders occupy the quarry.",
+      eggChance: 25,
+      rewardClasses: [
+        "Guardian",
+        "Fighter",
+      ] as const,
+      isFinalBoss: false,
+      status: "locked" as const,
+      opponents: [
+        {
+          id: "10000000-0000-0000-0000-000000000003",
+          name: "Rock Cub",
+          monsterClass: "Guardian" as const,
+          level: 2,
+          avatarVariant: 0,
+        },
+      ],
+    };
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify(detailEncounter),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const services = createHybridServices(
+      baseUrl,
+      {
+        latencyMs: 0,
+      },
+    );
+
+    const encounter =
+      await services.encounters.getEncounter(
+        secondEncounterId,
+      );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${baseUrl}/api/encounters/${secondEncounterId}`,
+      expect.objectContaining({
+        method: "GET",
+        credentials: "include",
+        headers: expect.objectContaining({
+          Accept: "application/json",
+          Authorization:
+            "Bearer encounter-detail-token",
+        }),
+      }),
+    );
+
+    expect(encounter).toEqual(
+      detailEncounter,
+    );
+
+    expect(encounter.opponents).toEqual([
+      expect.objectContaining({
+        name: "Rock Cub",
+        monsterClass: "Guardian",
+        level: 2,
+      }),
+    ]);
+  });
+
   it("keeps monster details mock-backed", async () => {
     const fetchMock = vi.fn();
 
     vi.stubGlobal("fetch", fetchMock);
 
     const services = createHybridServices(
-      "http://localhost:8080",
+      baseUrl,
       {
         latencyMs: 0,
       },
     );
 
     const monster =
-      await services.monsters.getMonster("m1");
+      await services.monsters.getMonster(
+        "m1",
+      );
 
-    expect(monster.name).toBe("Fierce Fox");
+    expect(monster.name).toBe(
+      "Fierce Fox",
+    );
+
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -231,14 +404,16 @@ describe("createHybridServices", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const services = createHybridServices(
-      "http://localhost:8080",
+      baseUrl,
       {
         latencyMs: 0,
       },
     );
 
     const before =
-      await services.monsters.getMonster("m1");
+      await services.monsters.getMonster(
+        "m1",
+      );
 
     const after =
       await services.monsters.spendStatPoint(
@@ -250,28 +425,34 @@ describe("createHybridServices", () => {
       before.pendingPoints - 1,
     );
 
-    expect(after.stats.strength).toBeGreaterThan(
+    expect(
+      after.stats.strength,
+    ).toBeGreaterThan(
       before.stats.strength,
     );
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps the remaining domains mock-backed", async () => {
+  it("keeps players, battles and history mock-backed", async () => {
     const fetchMock = vi.fn();
 
     vi.stubGlobal("fetch", fetchMock);
 
     const services = createHybridServices(
-      "http://localhost:8080",
+      baseUrl,
       {
         latencyMs: 0,
       },
     );
 
     await services.players.getProgress();
-    await services.encounters.listEncounters();
     await services.history.listBattles();
+
+    await services.battles.startBattle(
+      "e1",
+      ["m1"],
+    );
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
