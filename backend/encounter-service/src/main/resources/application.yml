@@ -15,6 +15,18 @@ spring:
   flyway:
     enabled: true
 
+  http:
+    serviceclient:
+      monster:
+        base-url: ${MONSTER_BASE_URL:https://localhost:8083}
+        connect-timeout: ${MONSTER_CONNECT_TIMEOUT:2s}
+        read-timeout: ${MONSTER_READ_TIMEOUT:3s}
+
+      simulator:
+        base-url: ${SIMULATOR_BASE_URL:https://localhost:8085}
+        connect-timeout: ${SIMULATOR_CONNECT_TIMEOUT:2s}
+        read-timeout: ${SIMULATOR_READ_TIMEOUT:5s}
+
 app:
   jwt:
     secret: ${JWT_SECRET:}
@@ -31,6 +43,7 @@ springdoc:
 
 server:
   port: ${SERVER_PORT:8084}
+
   ssl:
     enabled: ${SERVER_SSL_ENABLED:false}
     key-store: ${SERVER_SSL_KEY_STORE:}

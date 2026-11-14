@@ -215,6 +215,13 @@ services:
       ENCOUNTER_DATABASE_URL: jdbc:postgresql://encounter-postgres:5432/${ENCOUNTER_POSTGRES_DB:-monster_tamers_encounter}
       ENCOUNTER_DATABASE_USERNAME: ${ENCOUNTER_POSTGRES_USER:-monster_tamers_encounter}
       ENCOUNTER_DATABASE_PASSWORD: ${ENCOUNTER_POSTGRES_PASSWORD:-change-me-development-only}
+      MONSTER_BASE_URL: ${ENCOUNTER_MONSTER_BASE_URL:-https://monster-service:8083}
+      MONSTER_CONNECT_TIMEOUT: ${ENCOUNTER_MONSTER_CONNECT_TIMEOUT:-2s}
+      MONSTER_READ_TIMEOUT: ${ENCOUNTER_MONSTER_READ_TIMEOUT:-3s}
+
+      SIMULATOR_BASE_URL: ${SIMULATOR_BASE_URL:-https://simulator-service:8085}
+      SIMULATOR_CONNECT_TIMEOUT: ${SIMULATOR_CONNECT_TIMEOUT:-2s}
+      SIMULATOR_READ_TIMEOUT: ${SIMULATOR_READ_TIMEOUT:-5s}
     volumes:
       - ../infrastructure/runtime/tls/encounter-service/server.p12:/run/tls/server.p12:ro
       - ../infrastructure/runtime/tls/truststore.p12:/run/tls/truststore.p12:ro
@@ -223,6 +230,8 @@ services:
       - tls_password
     depends_on:
       encounter-postgres:
+        condition: service_healthy
+      monster-service:
         condition: service_healthy
       simulator-service:
         condition: service_healthy

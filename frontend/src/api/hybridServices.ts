@@ -4,19 +4,29 @@ import {
   createMockServices,
   type MockOptions,
 } from "./mock/mockServices";
+import type { BattleResult } from "../domain/types";
 
 /**
- * Uses the real backend only for functionality that has been integrated.
+ * Uses the real backend for functionality that has been integrated.
  *
- * Current HTTP-backed operations:
+ * HTTP-backed operations:
  * - monsters.listMonsters()
  * - teams.getTeam()
  * - teams.saveTeam()
  * - encounters.listEncounters()
  * - encounters.getEncounter()
+ * - battles.startBattle()
  *
- * Player progress, monster details, stat spending,
- * battles and history remain mock-backed.
+ * Mock-backed operations:
+ * - players.getProgress()
+ * - monsters.getMonster()
+ * - monsters.spendStatPoint()
+ * - history.listBattles()
+ * - persisted history fallback
+ *
+ * A newly started battle is cached in memory so that the battle-result
+ * route can display it immediately. The backend does not yet provide
+ * persisted battle-history lookup for this result.
  */
 export function createHybridServices(
   baseUrl: string,
@@ -28,26 +38,80 @@ export function createHybridServices(
   const httpServices =
     createHttpServices(baseUrl);
 
+  const recentBattles =
+    new Map<string, BattleResult>();
+
   return {
-    ...mockServices,
+    players: mockServices.players,
 
     monsters: {
-      ...mockServices.monsters,
+      getMonster:
+        mockServices.monsters.getMonster,
+
       listMonsters:
         httpServices.monsters.listMonsters,
+
+      spendStatPoint:
+        mockServices.monsters
+          .spendStatPoint,
     },
 
     teams: {
-      getTeam: httpServices.teams.getTeam,
-      saveTeam: httpServices.teams.saveTeam,
+      getTeam:
+        httpServices.teams.getTeam,
+
+      saveTeam:
+        httpServices.teams.saveTeam,
     },
 
     encounters: {
       listEncounters:
-        httpServices.encounters.listEncounters,
+        httpServices.encounters
+          .listEncounters,
 
       getEncounter:
-        httpServices.encounters.getEncounter,
+        httpServices.encounters
+          .getEncounter,
+    },
+
+    battles: {
+      startBattle: async (
+        encounterId,
+        monsterIds,
+      ) => {
+        const result =
+          await httpServices.battles
+            .startBattle(
+              encounterId,
+              monsterIds,
+            );
+
+        recentBattles.set(
+          result.id,
+          result,
+        );
+
+        return result;
+      },
+    },
+
+    history: {
+      listBattles:
+        mockServices.history.listBattles,
+
+      getBattle: async (
+        battleId,
+      ) => {
+        const recentResult =
+          recentBattles.get(battleId);
+
+        if (recentResult) {
+          return recentResult;
+        }
+
+        return mockServices.history
+          .getBattle(battleId);
+      },
     },
   };
 }
