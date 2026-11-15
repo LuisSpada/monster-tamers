@@ -71,7 +71,7 @@ Install the following tools:
 - Node.js 24
 - OpenSSL
 - Java `keytool`
-- PowerShell (on mac especially)
+- PowerShell (on mac/linux especially)
 
 Check the required tools:
 
@@ -110,8 +110,13 @@ openssl version
 
 ### 3. Generate local TLS certificates
 
+on Windows:
 ```powershell
 .\infrastructure\tls\generate-local-certificates.ps1
+```
+On mac/linux:
+```powershell
+pwsh ./infrastructure/tls/generate-local-certificates.ps1
 ```
 
 Choose a TLS password with:
@@ -130,24 +135,40 @@ infrastructure/runtime/tls/
 
 This directory is ignored by Git and must never be committed.
 
-If certificates already exist and must be replaced:
+#### If certificates already exist and must be replaced:
 
+on Windows:
 ```powershell
 .\infrastructure\tls\generate-local-certificates.ps1 -Force
+```
+on mac/Linux:
+```powershell
+pwsh ./infrastructure/tls/generate-local-certificates.ps1 -Force
 ```
 
 ### 4. Trust the local development CA
 
-Install only the public CA certificate:
+#### Install only the public CA certificate:
 
+on Windows:
 ```powershell
 Import-Certificate `
   -FilePath infrastructure\runtime\tls\ca.crt `
   -CertStoreLocation Cert:\CurrentUser\Root
 ```
+on mac:
+```powershell
+security add-trusted-cert -d -r trustRoot -k ~/Library/Keychains/login.keychain-db infrastructure/runtime/tls/ca.crt
+```
+on linux:
+```powershell
+sudo cp infrastructure/runtime/tls/ca.crt /usr/local/share/ca-certificates/monster-tamers-ca.crt
+sudo update-ca-certificates
+```
 
-Confirm that the certificate was installed:
+#### Confirm that the certificate was installed:
 
+on Windows:
 ```powershell
 Get-ChildItem Cert:\CurrentUser\Root |
   Where-Object {
@@ -155,16 +176,25 @@ Get-ChildItem Cert:\CurrentUser\Root |
   } |
   Select-Object Subject, Thumbprint, NotAfter
 ```
+on mac:
+```powershell
+security find-certificate -c "Monster Tamers Local Development CA" -p ~/Library/Keychains/login.keychain-db | openssl x509 -noout -subject -fingerprint -enddate
+```
 
-Never install, share or commit the CA private key:
+on Linux:
+```powershell
+openssl x509 -in /etc/ssl/certs/monster-tamers-ca.pem -noout -subject -fingerprint -enddate
+```
+
+#### Never install, share or commit the CA private key:
 
 ```text
 infrastructure/runtime/tls/ca.key
 ```
 
-If the certificates are regenerated, remove the old CA before importing the
-new one:
+#### If the certificates are regenerated, remove the old CA before importing the new one:
 
+on Windows:
 ```powershell
 Get-ChildItem Cert:\CurrentUser\Root |
   Where-Object {
@@ -177,12 +207,44 @@ Import-Certificate `
   -CertStoreLocation Cert:\CurrentUser\Root
 ```
 
+on mac:
+```powershell
+security delete-certificate -c "Monster Tamers Local Development CA" ~/Library/Keychains/login.keychain-db
+security add-trusted-cert -d -r trustRoot -k ~/Library/Keychains/login.keychain-db infrastructure/runtime/tls/ca.crt
+```
+
+on Linux:
+ - Step 1: regenerate certs
+```powershell
+sudo rm -f /usr/local/share/ca-certificates/monster-tamers-ca.crt
+sudo update-ca-certificates --fresh
+sudo cp infrastructure/runtime/tls/ca.crt /usr/local/share/ca-certificates/monster-tamers-ca.crt
+sudo update-ca-certificates
+```
+ - Step 2: browser trust store for Chrome and Chromium
+```powershell
+sudo apt-get install -y libnss3-tools
+certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "Monster Tamers Local Development CA" -i infrastructure/runtime/tls/ca.crt
+certutil -d sql:$HOME/.pki/nssdb -L | grep "Monster Tamers"
+```
+
+ - Step 2.1: if certs are regenerated, delete old browser entry before re-importing:
+```powershell
+certutil -d sql:$HOME/.pki/nssdb -D -n "Monster Tamers Local Development CA"
+certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "Monster Tamers Local Development CA" -i infrastructure/runtime/tls/ca.crt
+```
+
 ### 5. Configure the backend
 
 Create the local backend environment file:
 
 ```powershell
 Copy-Item backend\.env.example backend\.env
+```
+
+on mac/Linux:
+```powershell
+cp backend/.env.example backend/.env
 ```
 
 For local registration, make sure `backend/.env` contains:
@@ -229,10 +291,16 @@ simulator-service
 
 The four PostgreSQL containers should also become healthy.
 
-Test the HTTPS Gateway:
+#### Test the HTTPS Gateway:
 
+on Windows:
 ```powershell
 Invoke-RestMethod https://localhost:8080/actuator/health
+```
+
+on mac/Linux:
+```powershell
+curl -fsSL https://localhost:8080/actuator/health
 ```
 
 Expected result:
@@ -245,6 +313,7 @@ UP
 
 Create the local frontend environment file:
 
+on Windows:
 ```powershell
 @"
 VITE_API_MODE=http
@@ -252,6 +321,16 @@ VITE_GATEWAY_BASE_URL=https://localhost:8080
 VITE_API_BASE_URL=https://localhost:8080/api
 VITE_MOCK_LATENCY_MS=0
 "@ | Set-Content frontend\.env.local
+```
+
+on mac/Linux:
+```powershell
+cat << 'EOF' > frontend/.env.local
+VITE_API_MODE=http
+VITE_GATEWAY_BASE_URL=https://localhost:8080
+VITE_API_BASE_URL=https://localhost:8080/api
+VITE_MOCK_LATENCY_MS=0
+EOF
 ```
 
 Do not commit `frontend/.env.local`.
@@ -341,6 +420,12 @@ cd backend
 .\mvnw.cmd clean verify
 ```
 
+for mac/Linux:
+```powershell
+cd backend
+./mvnw clean verify
+```
+
 ### Frontend
 
 ```powershell
@@ -352,14 +437,20 @@ npm run build
 
 ## Verify HTTPS routing
 
-Check the Gateway:
+#### Check the Gateway:
 
+For Windows:
 ```powershell
 Invoke-RestMethod https://localhost:8080/actuator/health
 ```
+for mac/Linux:
+```powershell
+curl -fsSL https://localhost:8080/actuator/health
+```
 
-Check the service documentation through the Gateway:
+#### Check the service documentation through the Gateway:
 
+For Windows:
 ```powershell
 Invoke-RestMethod https://localhost:8080/docs/auth/v3/api-docs
 Invoke-RestMethod https://localhost:8080/docs/players/v3/api-docs
@@ -367,14 +458,28 @@ Invoke-RestMethod https://localhost:8080/docs/monsters/v3/api-docs
 Invoke-RestMethod https://localhost:8080/docs/encounters/v3/api-docs
 ```
 
-Plain HTTP should be rejected:
+for mac/Linux:
+```powershell
+curl -fsSL https://localhost:8080/docs/auth/v3/api-docs
+curl -fsSL https://localhost:8080/docs/players/v3/api-docs
+curl -fsSL https://localhost:8080/docs/monsters/v3/api-docs
+curl -fsSL https://localhost:8080/docs/encounters/v3/api-docs
+```
 
+#### Plain HTTP should be rejected:
+
+For Windows:
 ```powershell
 try {
     Invoke-WebRequest http://localhost:8080/actuator/health
 } catch {
     $_.Exception.Message
 }
+```
+
+for mac/Linux:
+```powershell
+curl -fsS http://localhost:8080/actuator/health || echo "Plain HTTP rejected as expected"
 ```
 
 ## Security
