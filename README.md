@@ -66,7 +66,7 @@ documents are the runtime source of truth if an endpoint changes.
 
 ## Implementation status
 
-Current progress can be seen in the Project in Github and its issues.
+Current progress can be seen in the associated GitHub issuesand the Project.
 The status below follows the delivery structure and user-story numbering from
 the `Acceptance-Criteria.pdf` used for this submission. The assessment refers
 to the acceptance criteria, not only to whether a screen or backend class
