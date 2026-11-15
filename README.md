@@ -42,36 +42,6 @@ directly exposed by the Gateway.
 
 ![Planned Monster Tamers microservice architecture](docs/architecture/architecture.svg)
 
-```text
-Frontend
-    |
-    | HTTPS
-    v
-Gateway Service
-    |
-    | HTTPS
-    +--> Auth Service
-    +--> Player Service
-    +--> Monster Service
-    +--> Encounter Service
-
-Auth Service
-    |
-    | HTTPS
-    v
-Player Service
-    |
-    | HTTPS
-    v
-Monster Service
-
-Encounter Service
-    |
-    | HTTPS
-    v
-Simulator Service
-```
-
 Only the Gateway is exposed publicly by the backend Docker Compose stack.
 Internal services and databases remain on the private Docker network.
 
