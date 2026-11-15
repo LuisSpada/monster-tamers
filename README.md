@@ -1,3 +1,10 @@
+# 1. Group OMB
+
+Members: 
+ - Olzhas Jalmukhambetov: o.jalmukhambetov@studenti.unipi.it
+ - Martin Thomas Waxenberger: m.waxenberger@studenti.unipi.it
+ - Benjamin Luis Spada: b.spada@studenti.unipi.it
+
 # Monster Tamers
 
 Monster Tamers is a web application for collecting monsters, building teams,
