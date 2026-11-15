@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: Monster Tamers Auth Service
+  version: 1.0.0
+servers:
+  - url: https://localhost:8080
+paths:
+  /api/login:
+    post:
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JsonObject'
+      responses:
+        '200': { description: Login succeeded }
+        '401': { description: Invalid credentials }
+  /api/registrations:
+    post:
+      summary: Start registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JsonObject'
+      responses:
+        '201': { description: Registration created }
+  /api/registrations/{registrationId}/confirmation:
+    post:
+      summary: Confirm registration
+      parameters:
+        - $ref: '#/components/parameters/RegistrationId'
+      responses:
+        '200': { description: Registration confirmed }
+components:
+  parameters:
+    RegistrationId:
+      name: registrationId
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    JsonObject:
+      type: object
+      additionalProperties: true

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" role="img" aria-labelledby="title description">
+  <title id="title">Monster Tamers planned microservice architecture</title>
+  <desc id="description">A frontend calls an HTTPS API Gateway. The gateway routes to Auth, Player, Monster and Encounter services. Encounter calls Simulator. Auth, Player, Monster and Encounter each own a PostgreSQL database.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+    </marker>
+    <style>
+      .box { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; rx: 12; }
+      .db { fill: #ecfdf5; stroke: #059669; stroke-width: 2; }
+      .label { font: 600 18px sans-serif; fill: #0f172a; text-anchor: middle; }
+      .small { font: 14px sans-serif; fill: #475569; text-anchor: middle; }
+      .line { stroke: #334155; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .title { font: 700 26px sans-serif; fill: #0f172a; text-anchor: middle; }
+    </style>
+  </defs>
+  <text x="500" y="38" class="title">Monster Tamers microservice architecture</text>
+  <rect x="390" y="70" width="220" height="58" class="box"/>
+  <text x="500" y="105" class="label">React frontend</text>
+  <text x="500" y="122" class="small">HTTP during local development</text>
+  <rect x="390" y="180" width="220" height="58" class="box"/>
+  <text x="500" y="215" class="label">API Gateway</text>
+  <text x="500" y="232" class="small">public HTTPS entry point</text>
+  <path d="M500 128 L500 180" class="line"/>
+
+  <rect x="55" y="300" width="170" height="58" class="box"/>
+  <text x="140" y="335" class="label">Auth Service</text>
+  <rect x="275" y="300" width="170" height="58" class="box"/>
+  <text x="360" y="335" class="label">Player Service</text>
+  <rect x="555" y="300" width="170" height="58" class="box"/>
+  <text x="640" y="335" class="label">Monster Service</text>
+  <rect x="775" y="300" width="170" height="58" class="box"/>
+  <text x="860" y="335" class="label">Encounter Service</text>
+  <path d="M500 238 L140 300" class="line"/>
+  <path d="M500 238 L360 300" class="line"/>
+  <path d="M500 238 L640 300" class="line"/>
+  <path d="M500 238 L860 300" class="line"/>
+
+  <rect x="775" y="430" width="170" height="58" class="box"/>
+  <text x="860" y="465" class="label">Simulator Service</text>
+  <path d="M860 358 L860 430" class="line"/>
+
+  <rect x="55" y="430" width="170" height="58" class="db"/>
+  <text x="140" y="465" class="label">Auth PostgreSQL</text>
+  <rect x="275" y="430" width="170" height="58" class="db"/>
+  <text x="360" y="465" class="label">Player PostgreSQL</text>
+  <rect x="555" y="430" width="170" height="58" class="db"/>
+  <text x="640" y="465" class="label">Monster PostgreSQL</text>
+  <rect x="775" y="530" width="170" height="58" class="db"/>
+  <text x="860" y="565" class="label">Encounter PostgreSQL</text>
+  <path d="M140 358 L140 430" class="line"/>
+  <path d="M360 358 L360 430" class="line"/>
+  <path d="M640 358 L640 430" class="line"/>
+  <path d="M860 488 L860 530" class="line"/>
+</svg>

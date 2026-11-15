@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: Monster Tamers API Gateway
+  version: 1.0.0
+  description: Public HTTPS entry point for the Monster Tamers services.
+servers:
+  - url: https://localhost:8080
+paths:
+  /actuator/health:
+    get:
+      summary: Gateway health
+      responses:
+        '200':
+          description: Gateway is healthy
+  /api:
+    get:
+      summary: API information
+      responses:
+        '200':
+          description: API metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string

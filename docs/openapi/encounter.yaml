@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: Monster Tamers Encounter Service
+  version: 1.0.0
+servers:
+  - url: https://localhost:8080
+security:
+  - bearerAuth: []
+paths:
+  /api/encounters:
+    get:
+      summary: List encounters
+      responses:
+        '200': { description: Available encounters }
+  /api/encounters/{encounterId}:
+    get:
+      summary: Get an encounter
+      parameters:
+        - name: encounterId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Encounter details }
+  /api/encounters/{encounterId}/battles:
+    post:
+      summary: Start a battle
+      parameters:
+        - name: encounterId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Battle result }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

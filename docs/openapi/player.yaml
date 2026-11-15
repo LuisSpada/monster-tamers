@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: Monster Tamers Player Service
+  version: 1.0.0
+servers:
+  - url: https://localhost:8080
+security:
+  - bearerAuth: []
+paths:
+  /api/players/me:
+    get:
+      summary: Get the current player profile
+      responses:
+        '200': { description: Player profile }
+        '401': { description: Authentication required }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,0 +1,18 @@
+openapi: 3.0.3
+info:
+  title: Monster Tamers Simulator Service
+  version: 1.0.0
+servers:
+  - url: https://simulator-service:8085
+paths:
+  /internal/battles:
+    post:
+      summary: Simulate a battle
+      description: Internal endpoint called by the Encounter Service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Battle simulation result }

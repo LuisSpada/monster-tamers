@@ -1,0 +1,44 @@
+openapi: 3.0.3
+info:
+  title: Monster Tamers Monster Service
+  version: 1.0.0
+servers:
+  - url: https://localhost:8080
+security:
+  - bearerAuth: []
+paths:
+  /api/monsters:
+    get:
+      summary: List the current monster collection
+      responses:
+        '200': { description: Monster collection }
+  /api/monsters/{monsterId}:
+    get:
+      summary: Get a monster
+      parameters:
+        - name: monsterId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Monster details }
+  /api/monsters/team:
+    get:
+      summary: Get the current team
+      responses:
+        '200': { description: Current team }
+    put:
+      summary: Save the current team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Team saved }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
