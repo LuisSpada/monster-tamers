@@ -406,8 +406,8 @@ cd frontend
 npm run dev
 ```
 
-If the final delivery requires the complete application to run through Docker,
-the production frontend build must also be served from a frontend container,
+The final delivery requires the complete application to run through Docker.
+The production frontend build must also be served from a frontend container,
 for example through Nginx, and added to `backend/compose.yaml`.
 
 Until that integration is implemented, follow the frontend startup instructions
