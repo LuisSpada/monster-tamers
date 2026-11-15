@@ -71,7 +71,7 @@ Install the following tools:
 - Node.js 24
 - OpenSSL
 - Java `keytool`
-- PowerShell
+- PowerShell (on mac especially)
 
 Check the required tools:
 
@@ -83,6 +83,7 @@ node --version
 npm --version
 openssl version
 keytool -version
+pwsh --version
 ```
 
 ## Quick start
