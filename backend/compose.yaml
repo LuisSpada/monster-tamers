@@ -284,6 +284,14 @@ services:
       start_period: 30s
       retries: 3
 
+  tls-init:
+    build: ../infrastructure/tls
+    profiles: [setup]
+    volumes:
+      - ..:/repo
+    environment:
+      TLS_PASSWORD: ${TLS_PASSWORD:-change-me-development-only}
+
   postgres:
     image: postgres:17-alpine
     environment:

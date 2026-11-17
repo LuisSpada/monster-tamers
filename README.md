@@ -372,9 +372,6 @@ Install the following tools:
 - Git
 - Java 21
 - Node.js 24
-- OpenSSL
-- Java `keytool`
-- PowerShell (on mac/linux especially)
 
 Check the required tools:
 
@@ -384,9 +381,6 @@ git --version
 java --version
 node --version
 npm --version
-openssl version
-keytool -version
-pwsh --version
 ```
 
 ## Quick start
@@ -398,36 +392,15 @@ git clone <repository-url>
 cd monster-tamers
 ```
 
-### 2. Make OpenSSL available
-
-On Windows, OpenSSL may be available through Git for Windows:
+### 2. Generate local TLS certificates
 
 ```powershell
-$env:Path = "C:\Program Files\Git\usr\bin;$env:Path"
-
-Remove-Item Env:OPENSSL_CONF -ErrorAction SilentlyContinue
-Remove-Item Env:SSLEAY_CONF -ErrorAction SilentlyContinue
-
-openssl version
+docker compose -f backend/compose.yaml run --rm tls-init
 ```
 
-### 3. Generate local TLS certificates
-
-on Windows:
-```powershell
-.\infrastructure\tls\generate-local-certificates.ps1
-```
-On mac/linux:
-```powershell
-pwsh ./infrastructure/tls/generate-local-certificates.ps1
-```
-
-Choose a TLS password with:
-
-- at least 12 characters
-- printable ASCII characters only
-- no spaces
-- no `æ`, `ø`, `å` or other non-ASCII characters
+The certificates are generated inside Docker. The command does nothing if they
+already exist. The default development TLS password can be overridden with the
+`TLS_PASSWORD` environment variable.
 
 The generated certificates, private keys, keystores and password file are
 stored under:
@@ -440,16 +413,9 @@ This directory is ignored by Git and must never be committed.
 
 #### If certificates already exist and must be replaced:
 
-on Windows:
-```powershell
-.\infrastructure\tls\generate-local-certificates.ps1 -Force
-```
-on mac/Linux:
-```powershell
-pwsh ./infrastructure/tls/generate-local-certificates.ps1 -Force
-```
+Delete `infrastructure/runtime/tls/` and run the command again.
 
-### 4. Trust the local development CA
+### 3. Trust the local development CA
 
 #### Install only the public CA certificate:
 
@@ -537,7 +503,7 @@ certutil -d sql:$HOME/.pki/nssdb -D -n "Monster Tamers Local Development CA"
 certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "Monster Tamers Local Development CA" -i infrastructure/runtime/tls/ca.crt
 ```
 
-### 5. Configure the backend
+### 4. Configure the backend
 
 Create the local backend environment file:
 
@@ -561,7 +527,7 @@ Registration confirmation codes are written to the Auth Service logs.
 
 Do not commit `backend/.env`.
 
-### 6. Start the backend
+### 5. Start the backend
 
 Start all microservices and databases with Docker Compose:
 
@@ -612,7 +578,7 @@ Expected result:
 UP
 ```
 
-### 7. Configure the frontend
+### 6. Configure the frontend
 
 Create the local frontend environment file:
 
@@ -638,7 +604,7 @@ EOF
 
 Do not commit `frontend/.env.local`.
 
-### 8. Start the frontend
+### 7. Start the frontend
 
 ```powershell
 cd frontend
