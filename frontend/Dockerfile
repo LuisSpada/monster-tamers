@@ -3,6 +3,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+ARG VITE_API_MODE=http
+ARG VITE_GATEWAY_BASE_URL=
+ARG VITE_API_BASE_URL=/api
 RUN npm run build
 FROM nginx:1.29-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
