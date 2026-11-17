@@ -284,6 +284,26 @@ services:
       start_period: 30s
       retries: 3
 
+  frontend:
+    build: ../frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ../infrastructure/runtime/tls/ca.crt:/run/tls/ca.crt:ro
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+    networks:
+      - backend
+
+  tls-init:
+    build: ../infrastructure/tls
+    profiles: [setup]
+    volumes:
+      - ..:/repo
+    environment:
+      TLS_PASSWORD: ${TLS_PASSWORD:-change-me-development-only}
+
   postgres:
     image: postgres:17-alpine
     environment:

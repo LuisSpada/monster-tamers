@@ -251,14 +251,14 @@ the user stories above.
 - The Gateway is the public backend entry point. The frontend is configured to
   call the Gateway rather than internal services or databases.
 - The repository contains a README with installation, build, run and testing
-  instructions, and the frontend has its own standalone Dockerfile.
+  instructions.
+- The frontend container is part of the Compose stack and proxies `/api` to
+  the Gateway, so the complete architecture is started by one Compose command.
 - Docker images run as the non-root `app` user, and the local TLS generation
   flow creates certificates for every service.
 
 **Still missing or incomplete**
 
-- The frontend container is not yet part of the backend Compose stack, so the
-  complete architecture is not started by one Compose command.
 - The frontend is not yet fully connected to the backend: progress, history,
   rewards and stat upgrades still have mock or in-memory fallbacks.
 - Some business logic still exists in the frontend mock service for local
@@ -372,9 +372,6 @@ Install the following tools:
 - Git
 - Java 21
 - Node.js 24
-- OpenSSL
-- Java `keytool`
-- PowerShell (on mac/linux especially)
 
 Check the required tools:
 
@@ -384,9 +381,6 @@ git --version
 java --version
 node --version
 npm --version
-openssl version
-keytool -version
-pwsh --version
 ```
 
 ## Quick start
@@ -398,36 +392,15 @@ git clone <repository-url>
 cd monster-tamers
 ```
 
-### 2. Make OpenSSL available
-
-On Windows, OpenSSL may be available through Git for Windows:
+### 2. Start the application
 
 ```powershell
-$env:Path = "C:\Program Files\Git\usr\bin;$env:Path"
-
-Remove-Item Env:OPENSSL_CONF -ErrorAction SilentlyContinue
-Remove-Item Env:SSLEAY_CONF -ErrorAction SilentlyContinue
-
-openssl version
+docker compose -f backend/compose.yaml run --rm tls-init && docker compose -f backend/compose.yaml up --build -d --wait
 ```
 
-### 3. Generate local TLS certificates
-
-on Windows:
-```powershell
-.\infrastructure\tls\generate-local-certificates.ps1
-```
-On mac/linux:
-```powershell
-pwsh ./infrastructure/tls/generate-local-certificates.ps1
-```
-
-Choose a TLS password with:
-
-- at least 12 characters
-- printable ASCII characters only
-- no spaces
-- no `æ`, `ø`, `å` or other non-ASCII characters
+`tls-init` generates local TLS certificates inside Docker on the first run and
+does nothing if they already exist. The default development TLS password can be
+overridden with the `TLS_PASSWORD` environment variable.
 
 The generated certificates, private keys, keystores and password file are
 stored under:
@@ -440,16 +413,23 @@ This directory is ignored by Git and must never be committed.
 
 #### If certificates already exist and must be replaced:
 
-on Windows:
-```powershell
-.\infrastructure\tls\generate-local-certificates.ps1 -Force
-```
-on mac/Linux:
-```powershell
-pwsh ./infrastructure/tls/generate-local-certificates.ps1 -Force
+Delete `infrastructure/runtime/tls/` and run the command again.
+
+The first start builds all images and may take several minutes.
+
+### 3. Open the application
+
+```text
+http://localhost:3000
 ```
 
-### 4. Trust the local development CA
+## Frontend development
+
+For hot reload, run the Vite development server against the running backend.
+The browser then calls the HTTPS Gateway directly, so the local development CA
+must be trusted first.
+
+### Trust the local development CA
 
 #### Install only the public CA certificate:
 
@@ -536,83 +516,7 @@ certutil -d sql:$HOME/.pki/nssdb -L | grep "Monster Tamers"
 certutil -d sql:$HOME/.pki/nssdb -D -n "Monster Tamers Local Development CA"
 certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "Monster Tamers Local Development CA" -i infrastructure/runtime/tls/ca.crt
 ```
-
-### 5. Configure the backend
-
-Create the local backend environment file:
-
-```powershell
-Copy-Item backend\.env.example backend\.env
-```
-
-on mac/Linux:
-```powershell
-cp backend/.env.example backend/.env
-```
-
-For local registration, make sure `backend/.env` contains:
-
-```dotenv
-MAIL_MODE=logging
-```
-
-The application does not require an email provider during local development.
-Registration confirmation codes are written to the Auth Service logs.
-
-Do not commit `backend/.env`.
-
-### 6. Start the backend
-
-Start all microservices and databases with Docker Compose:
-
-```powershell
-docker compose `
-  --env-file backend/.env `
-  -f backend/compose.yaml `
-  up --build -d
-```
-
-Check the container status:
-
-```powershell
-docker compose `
-  --env-file backend/.env `
-  -f backend/compose.yaml `
-  ps
-```
-
-The following application services should become healthy:
-
-```text
-gateway-service
-auth-service
-player-service
-monster-service
-encounter-service
-simulator-service
-```
-
-The four PostgreSQL containers should also become healthy.
-
-#### Test the HTTPS Gateway:
-
-on Windows:
-```powershell
-Invoke-RestMethod https://localhost:8080/actuator/health
-```
-
-on mac/Linux:
-```powershell
-curl -fsSL https://localhost:8080/actuator/health
-```
-
-Expected result:
-
-```text
-UP
-```
-
-### 7. Configure the frontend
+### Configure the frontend
 
 Create the local frontend environment file:
 
@@ -638,7 +542,7 @@ EOF
 
 Do not commit `frontend/.env.local`.
 
-### 8. Start the frontend
+### Start the development server
 
 ```powershell
 cd frontend
@@ -646,34 +550,23 @@ npm ci
 npm run dev
 ```
 
-Open the application:
-
-```text
-http://localhost:5173
-```
-
-Keep the frontend terminal running while using the application.
+Open `http://localhost:5173` and keep the frontend terminal running.
 
 ## Register an account
 
-1. Open `http://localhost:5173`.
+1. Open `http://localhost:3000`.
 2. Select **Create account**.
 3. Enter an email address and password.
 4. Open another PowerShell terminal.
 5. Follow the Auth Service logs:
 
 ```powershell
-docker compose `
-  --env-file backend/.env `
-  -f backend/compose.yaml `
-  logs -f auth-service
+docker compose -f backend/compose.yaml logs -f auth-service
 ```
 
 6. Find the logged registration confirmation code.
 7. Enter the code on the confirmation page.
 8. Log in with the registered account.
-
-**Disclaimer**: A self-test on Mac could not sufficiently connect to the backend server to register or to login. Needless to say, we will look into this.
 
 Press `Ctrl+C` to stop following the logs. This does not stop the containers.
 
@@ -684,7 +577,8 @@ Email delivery is not required for the current local setup because
 
 | Component | Address |
 |---|---|
-| Frontend | `http://localhost:5173` |
+| Frontend | `http://localhost:3000` |
+| Frontend development server | `http://localhost:5173` |
 | HTTPS Gateway | `https://localhost:8080` |
 | API base URL | `https://localhost:8080/api` |
 | Gateway health | `https://localhost:8080/actuator/health` |
@@ -694,24 +588,16 @@ Internal microservices and PostgreSQL databases are not published to the host.
 
 ## Stop the application
 
-Stop the frontend by pressing `Ctrl+C` in the frontend terminal.
-
-Stop the backend while preserving database data:
+Stop the application while preserving database data:
 
 ```powershell
-docker compose `
-  --env-file backend/.env `
-  -f backend/compose.yaml `
-  down
+docker compose -f backend/compose.yaml down
 ```
 
 Remove containers and database volumes:
 
 ```powershell
-docker compose `
-  --env-file backend/.env `
-  -f backend/compose.yaml `
-  down -v
+docker compose -f backend/compose.yaml down -v
 ```
 
 The second command permanently removes local database data.
@@ -808,24 +694,6 @@ Each developer and reviewer should generate separate local TLS material.
 
 If a credential is displayed in terminal output, chat, source control or a pull
 request, revoke it and generate a replacement immediately.
-
-## Frontend Docker status
-
-All backend microservices and databases run through Docker Compose.
-
-The frontend currently runs through the Vite development server:
-
-```powershell
-cd frontend
-npm run dev
-```
-
-The final delivery requires the complete application to run through Docker.
-The production frontend build must also be served from a frontend container,
-for example through Nginx, and added to `backend/compose.yaml`.
-
-Until that integration is implemented, follow the frontend startup instructions
-in this README.
 
 ## Additional information
 
