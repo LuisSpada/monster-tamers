@@ -36,14 +36,14 @@ monster-tamers/
 
 ## Architecture
 
-The following diagram shows the planned microservice architecture. It includes
-the Simulator Service and service-owned databases even when they are not
-directly exposed by the Gateway.
+The following diagram shows the implemented microservice architecture,
+including direct internal service calls and service-owned databases.
 
 ![Planned Monster Tamers microservice architecture](docs/architecture/architecture.svg)
 
 Only the Gateway is exposed publicly by the backend Docker Compose stack.
-Internal services and databases remain on the private Docker network.
+Internal services communicate directly over the private Docker network;
+their APIs and databases are not exposed publicly.
 
 ## OpenAPI specifications
 
