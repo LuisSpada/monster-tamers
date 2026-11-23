@@ -21,7 +21,7 @@ COPY shared-contracts/src shared-contracts/src
 COPY shared-web/src shared-web/src
 COPY auth-service/src auth-service/src
 
-RUN ./mvnw \
+RUN --mount=type=cache,target=/root/.m2 ./mvnw \
     -pl auth-service \
     -am \
     package \

@@ -20,7 +20,7 @@ RUN sed -i 's/\r$//' mvnw \
 COPY shared-contracts/src shared-contracts/src
 COPY gateway-service/src gateway-service/src
 
-RUN ./mvnw \
+RUN --mount=type=cache,target=/root/.m2 ./mvnw \
     -pl gateway-service \
     -am \
     package \
