@@ -22,10 +22,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BattleOrchestrationService {
@@ -135,6 +137,11 @@ public class BattleOrchestrationService {
                     )
             );
         } catch (RestClientException exception) {
+            log.warn(
+                    "Monster Service call failed for account {}",
+                    accountId,
+                    exception
+            );
             throw new ApiException(
                     EncounterErrorCode
                             .BATTLE_MONSTERS_UNAVAILABLE
@@ -148,6 +155,10 @@ public class BattleOrchestrationService {
         try {
             return simulatorClient.simulate(request);
         } catch (RestClientException exception) {
+            log.warn(
+                    "Simulator Service call failed",
+                    exception
+            );
             throw new ApiException(
                     EncounterErrorCode
                             .SIMULATOR_UNAVAILABLE
