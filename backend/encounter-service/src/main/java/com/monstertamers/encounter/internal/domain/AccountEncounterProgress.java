@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -16,6 +17,7 @@ import lombok.Setter;
 @IdClass(AccountEncounterProgressId.class)
 @Getter
 @Setter
+@NoArgsConstructor
 public class AccountEncounterProgress {
 
     @Id
@@ -29,4 +31,12 @@ public class AccountEncounterProgress {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private EncounterStatus status;
+
+    public AccountEncounterProgress(UUID accountId, UUID encounterId) {
+
+        this.accountId = accountId;
+        this.encounterId = encounterId;
+        this.status = EncounterStatus.available;
+    }
+
 }

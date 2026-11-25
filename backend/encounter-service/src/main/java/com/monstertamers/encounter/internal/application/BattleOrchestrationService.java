@@ -1,5 +1,6 @@
 package com.monstertamers.encounter.internal.application;
 
+import com.monstertamers.encounter.internal.application.battle.BattleFinishedEvent;
 import com.monstertamers.encounter.internal.domain.AccountEncounterProgress;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
@@ -23,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
@@ -40,8 +42,9 @@ public class BattleOrchestrationService {
     private final AccountEncounterProgressRepository progressRepository;
     private final MonsterClient monsterClient;
     private final SimulatorClient simulatorClient;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public BattleResultDto startBattle(
             UUID accountId,
             UUID encounterId,
@@ -99,6 +102,10 @@ public class BattleOrchestrationService {
         validateSimulatorResponse(
                 encounterId,
                 simulatorResponse
+        );
+
+        eventPublisher.publishEvent(
+            new BattleFinishedEvent(accountId, encounterId, simulatorResponse.outcome())
         );
 
         return toResultDto(simulatorResponse);
