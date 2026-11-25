@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.monstertamers.encounter.internal.application.BattleOrchestrationService;
+import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.web.dto.request.StartBattleRequest;
 import com.monstertamers.encounter.internal.web.dto.response.BattleResultDto;
 import java.time.Instant;
@@ -405,7 +406,7 @@ class BattleControllerTest {
                 Instant.parse(
                         "2026-11-14T12:00:00Z"
                 ),
-                "victory",
+                BattleOutcome.victory,
                 3,
                 participants,
                 List.of(
