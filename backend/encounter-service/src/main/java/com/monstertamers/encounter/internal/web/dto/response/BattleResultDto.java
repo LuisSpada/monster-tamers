@@ -1,5 +1,6 @@
 package com.monstertamers.encounter.internal.web.dto.response;
 
+import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +11,7 @@ public record BattleResultDto(
         String encounterName,
         boolean finalBoss,
         Instant playedAt,
-        String outcome,
+        BattleOutcome outcome,
         int rounds,
         List<ParticipantDto> participants,
         List<EventDto> events

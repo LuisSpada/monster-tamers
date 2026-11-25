@@ -318,10 +318,6 @@ public class BattleOrchestrationService {
                         || response.encounterName().isBlank()
                         || response.playedAt() == null
                         || response.outcome() == null
-                        || !Set.of(
-                                "victory",
-                                "defeat"
-                        ).contains(response.outcome())
                         || response.rounds() < 1
                         || response.participants() == null
                         || response.events() == null

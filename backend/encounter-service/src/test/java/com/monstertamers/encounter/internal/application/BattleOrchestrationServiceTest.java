@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
 import com.monstertamers.encounter.internal.integration.monster.BattleMonsterDto;
@@ -189,7 +190,7 @@ class BattleOrchestrationServiceTest {
                 .isEqualTo("Meadow Scouts");
 
         assertThat(result.outcome())
-                .isEqualTo("victory");
+                .isEqualTo(BattleOutcome.victory);
 
         assertThat(result.rounds())
                 .isEqualTo(3);
@@ -635,7 +636,7 @@ class BattleOrchestrationServiceTest {
                         Instant.parse(
                                 "2026-11-14T12:00:00Z"
                         ),
-                        "victory",
+                        BattleOutcome.victory,
                         2,
                         List.of(),
                         List.of()
@@ -691,7 +692,7 @@ class BattleOrchestrationServiceTest {
                         Instant.parse(
                                 "2026-11-14T12:00:00Z"
                         ),
-                        "draw",
+                        null,
                         2,
                         List.of(),
                         List.of()
@@ -841,7 +842,7 @@ class BattleOrchestrationServiceTest {
                 Instant.parse(
                         "2026-11-14T12:00:00Z"
                 ),
-                "victory",
+                BattleOutcome.victory,
                 3,
                 participants,
                 List.of(
