@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.monstertamers.encounter.internal.domain.Battle;
 import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
@@ -90,6 +91,9 @@ class BattleOrchestrationServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private BattleHistoryService battleHistoryService;
 
     @InjectMocks
     private BattleOrchestrationService service;
@@ -173,6 +177,18 @@ class BattleOrchestrationServiceTest {
         when(
                 simulatorClient.simulate(any())
         ).thenReturn(simulatorResponse);
+
+        Battle battle = new Battle();
+        battle.setId(BATTLE_ID);
+        battle.setOutcome(BattleOutcome.victory);
+
+        when(
+                battleHistoryService.save(
+                        ACCOUNT_ID,
+                        encounter,
+                        simulatorResponse
+                )
+        ).thenReturn(battle);
 
         BattleResultDto result = service.startBattle(
                 ACCOUNT_ID,

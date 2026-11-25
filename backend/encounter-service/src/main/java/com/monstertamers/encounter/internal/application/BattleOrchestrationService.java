@@ -2,6 +2,7 @@ package com.monstertamers.encounter.internal.application;
 
 import com.monstertamers.encounter.internal.application.battle.BattleFinishedEvent;
 import com.monstertamers.encounter.internal.domain.AccountEncounterProgress;
+import com.monstertamers.encounter.internal.domain.Battle;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
 import com.monstertamers.encounter.internal.domain.EncounterStatus;
@@ -43,6 +44,7 @@ public class BattleOrchestrationService {
     private final MonsterClient monsterClient;
     private final SimulatorClient simulatorClient;
     private final ApplicationEventPublisher eventPublisher;
+    private final BattleHistoryService battleHistoryService;
 
     @Transactional
     public BattleResultDto startBattle(
@@ -104,11 +106,19 @@ public class BattleOrchestrationService {
                 simulatorResponse
         );
 
-        eventPublisher.publishEvent(
-            new BattleFinishedEvent(accountId, encounterId, simulatorResponse.outcome())
+        Battle battle = battleHistoryService.save(
+                accountId,
+                encounter,
+                simulatorResponse
         );
 
-        return toResultDto(simulatorResponse);
+        eventPublisher.publishEvent(new BattleFinishedEvent(
+            accountId,
+            encounterId,
+            battle.getOutcome()
+        ));
+
+        return toResultDto(battle, simulatorResponse);
     }
 
     private EncounterStatus resolveStatus(
@@ -330,6 +340,7 @@ public class BattleOrchestrationService {
     }
 
     private BattleResultDto toResultDto(
+            Battle battle,
             SimulatorBattleResponse response
     ) {
         List<BattleResultDto.ParticipantDto>
@@ -362,12 +373,12 @@ public class BattleOrchestrationService {
                         .toList();
 
         return new BattleResultDto(
-                response.id(),
+                battle.getId(),
                 response.encounterId(),
                 response.encounterName(),
                 response.finalBoss(),
-                response.playedAt(),
-                response.outcome(),
+                battle.getPlayedAt(),
+                battle.getOutcome(),
                 response.rounds(),
                 participants,
                 events
