@@ -7,6 +7,8 @@ import com.monstertamers.encounter.internal.integration.simulator.SimulatorBattl
 import com.monstertamers.encounter.internal.integration.simulator.SimulatorBattleResponse;
 import com.monstertamers.encounter.internal.persistence.BattleLogRepository;
 import com.monstertamers.encounter.internal.persistence.BattleRepository;
+import com.monstertamers.encounter.internal.web.dto.response.BattleSummaryDto;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ public class BattleHistoryService {
     private final BattleRepository battleRepository;
     private final BattleLogRepository battleLogRepository;
     private final SimulatorBattleMapper simulatorBattleMapper;
+    private final BattleDtoMapper battleDtoMapper;
 
     @Transactional
     public Battle save(
@@ -34,5 +37,15 @@ public class BattleHistoryService {
         battleLogRepository.save(battleLog);
 
         return battle;
+    }
+
+    @Transactional(readOnly = true)
+    public List<BattleSummaryDto> findAll(UUID accountId) {
+
+        return battleRepository
+                .findAllByAccountIdOrderByPlayedAtDesc(accountId)
+                .stream()
+                .map(battleDtoMapper::toSummaryDto)
+                .toList();
     }
 }

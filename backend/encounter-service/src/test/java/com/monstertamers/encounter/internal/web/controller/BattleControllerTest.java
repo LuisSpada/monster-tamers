@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.monstertamers.encounter.internal.application.BattleHistoryService;
 import com.monstertamers.encounter.internal.application.BattleOrchestrationService;
 import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.web.dto.request.StartBattleRequest;
@@ -88,7 +89,10 @@ class BattleControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(
                         new BattleController(
-                                battleOrchestrationService
+                                battleOrchestrationService,
+                                org.mockito.Mockito.mock(
+                                        BattleHistoryService.class
+                                )
                         )
                 )
                 .setValidator(validator)
