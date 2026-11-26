@@ -2,7 +2,6 @@ package com.monstertamers.encounter.internal.application;
 
 import com.monstertamers.encounter.internal.application.battle.BattleFinishedEvent;
 import com.monstertamers.encounter.internal.domain.AccountEncounterProgress;
-import com.monstertamers.encounter.internal.domain.Battle;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
 import com.monstertamers.encounter.internal.domain.EncounterStatus;
@@ -106,7 +105,7 @@ public class BattleOrchestrationService {
                 simulatorResponse
         );
 
-        Battle battle = battleHistoryService.save(
+        BattleResultDto result = battleHistoryService.save(
                 accountId,
                 encounter,
                 simulatorResponse
@@ -115,10 +114,10 @@ public class BattleOrchestrationService {
         eventPublisher.publishEvent(new BattleFinishedEvent(
             accountId,
             encounterId,
-            battle.getOutcome()
+            result.outcome()
         ));
 
-        return toResultDto(battle, simulatorResponse);
+        return result;
     }
 
     private EncounterStatus resolveStatus(
@@ -337,51 +336,5 @@ public class BattleOrchestrationService {
                             .SIMULATOR_RESPONSE_INVALID
             );
         }
-    }
-
-    private BattleResultDto toResultDto(
-            Battle battle,
-            SimulatorBattleResponse response
-    ) {
-        List<BattleResultDto.ParticipantDto>
-                participants =
-                response.participants()
-                        .stream()
-                        .map(participant ->
-                                new BattleResultDto
-                                        .ParticipantDto(
-                                        participant.monsterId(),
-                                        participant.name(),
-                                        participant.monsterClass(),
-                                        participant.level()
-                                )
-                        )
-                        .toList();
-
-        List<BattleResultDto.EventDto> events =
-                response.events()
-                        .stream()
-                        .map(event ->
-                                new BattleResultDto.EventDto(
-                                        event.id(),
-                                        event.round(),
-                                        event.side(),
-                                        event.kind(),
-                                        event.message()
-                                )
-                        )
-                        .toList();
-
-        return new BattleResultDto(
-                battle.getId(),
-                response.encounterId(),
-                response.encounterName(),
-                response.finalBoss(),
-                battle.getPlayedAt(),
-                battle.getOutcome(),
-                response.rounds(),
-                participants,
-                events
-        );
     }
 }

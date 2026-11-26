@@ -7,6 +7,7 @@ import com.monstertamers.encounter.internal.integration.simulator.SimulatorBattl
 import com.monstertamers.encounter.internal.integration.simulator.SimulatorBattleResponse;
 import com.monstertamers.encounter.internal.persistence.BattleLogRepository;
 import com.monstertamers.encounter.internal.persistence.BattleRepository;
+import com.monstertamers.encounter.internal.web.dto.response.BattleResultDto;
 import com.monstertamers.encounter.internal.web.dto.response.BattleSummaryDto;
 import java.util.List;
 import java.util.UUID;
@@ -24,7 +25,7 @@ public class BattleHistoryService {
     private final BattleDtoMapper battleDtoMapper;
 
     @Transactional
-    public Battle save(
+    public BattleResultDto save(
             UUID accountId,
             Encounter encounter,
             SimulatorBattleResponse response
@@ -36,7 +37,7 @@ public class BattleHistoryService {
         BattleLog battleLog = simulatorBattleMapper.toBattleLog(battle, response);
         battleLogRepository.save(battleLog);
 
-        return battle;
+        return battleDtoMapper.toResultDto(battle, battleLog.getEvents());
     }
 
     @Transactional(readOnly = true)

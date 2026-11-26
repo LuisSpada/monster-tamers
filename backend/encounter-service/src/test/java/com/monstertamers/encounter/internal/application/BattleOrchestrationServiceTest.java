@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.monstertamers.encounter.internal.domain.Battle;
 import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
@@ -25,6 +24,7 @@ import com.monstertamers.encounter.internal.persistence.EncounterOpponentReposit
 import com.monstertamers.encounter.internal.persistence.EncounterRepository;
 import com.monstertamers.encounter.internal.web.dto.request.StartBattleRequest;
 import com.monstertamers.encounter.internal.web.dto.response.BattleResultDto;
+import com.monstertamers.encounter.internal.web.dto.response.EncounterShortDto;
 import com.monstertamers.web.error.ApiException;
 import java.time.Instant;
 import java.util.List;
@@ -178,9 +178,15 @@ class BattleOrchestrationServiceTest {
                 simulatorClient.simulate(any())
         ).thenReturn(simulatorResponse);
 
-        Battle battle = new Battle();
-        battle.setId(BATTLE_ID);
-        battle.setOutcome(BattleOutcome.victory);
+        BattleResultDto savedResult = new BattleResultDto(
+                BATTLE_ID,
+                new EncounterShortDto(ENCOUNTER_ID, "Meadow Scouts", false),
+                Instant.parse("2026-11-14T12:00:00Z"),
+                BattleOutcome.victory,
+                3,
+                List.of(),
+                List.of()
+        );
 
         when(
                 battleHistoryService.save(
@@ -188,7 +194,7 @@ class BattleOrchestrationServiceTest {
                         encounter,
                         simulatorResponse
                 )
-        ).thenReturn(battle);
+        ).thenReturn(savedResult);
 
         BattleResultDto result = service.startBattle(
                 ACCOUNT_ID,
@@ -196,29 +202,8 @@ class BattleOrchestrationServiceTest {
                 new StartBattleRequest(requestedIds)
         );
 
-        assertThat(result.id())
-                .isEqualTo(BATTLE_ID);
-
-        assertThat(result.encounterId())
-                .isEqualTo(ENCOUNTER_ID);
-
-        assertThat(result.encounterName())
-                .isEqualTo("Meadow Scouts");
-
-        assertThat(result.outcome())
-                .isEqualTo(BattleOutcome.victory);
-
-        assertThat(result.rounds())
-                .isEqualTo(3);
-
-        assertThat(result.participants())
-                .extracting(
-                        BattleResultDto.ParticipantDto::monsterId
-                )
-                .containsExactly(
-                        SECOND_MONSTER_ID,
-                        FIRST_MONSTER_ID
-                );
+        assertThat(result)
+                .isSameAs(savedResult);
 
         verify(monsterClient)
                 .loadBattleMonsters(

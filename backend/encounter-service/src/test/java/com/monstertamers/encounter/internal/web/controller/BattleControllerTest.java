@@ -16,6 +16,7 @@ import com.monstertamers.encounter.internal.application.BattleOrchestrationServi
 import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.web.dto.request.StartBattleRequest;
 import com.monstertamers.encounter.internal.web.dto.response.BattleResultDto;
+import com.monstertamers.encounter.internal.web.dto.response.EncounterShortDto;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -404,9 +405,7 @@ class BattleControllerTest {
 
         return new BattleResultDto(
                 BATTLE_ID,
-                ENCOUNTER_ID,
-                "Meadow Scouts",
-                false,
+                new EncounterShortDto(ENCOUNTER_ID, "Meadow Scouts", false),
                 Instant.parse(
                         "2026-11-14T12:00:00Z"
                 ),
