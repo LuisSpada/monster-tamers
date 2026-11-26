@@ -1,5 +1,6 @@
 package com.monstertamers.encounter.internal.web.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import java.time.Instant;
 import java.util.List;
@@ -7,9 +8,7 @@ import java.util.UUID;
 
 public record BattleResultDto(
         UUID id,
-        UUID encounterId,
-        String encounterName,
-        boolean finalBoss,
+        @JsonUnwrapped EncounterShortDto encounter,
         Instant playedAt,
         BattleOutcome outcome,
         int rounds,
