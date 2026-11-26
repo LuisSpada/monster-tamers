@@ -54,3 +54,11 @@ export function getErrorMessage(error: unknown): string {
 
   return "Something went wrong. Please try again.";
 }
+
+export function nullIfNotFound(error: unknown): null {
+  if (error instanceof ApiError && error.status === 404) {
+    return null;
+  }
+
+  throw error;
+}
