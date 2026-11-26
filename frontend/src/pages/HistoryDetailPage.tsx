@@ -2,10 +2,11 @@ import { useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { paths } from "../app/paths";
+import { nullIfNotFound } from "../api/errors";
 import { useServices } from "../api/useServices";
 import { PageHeader } from "../components/common/PageHeader";
 import { BattleReport } from "../components/game/BattleReport";
-import { ErrorState, LoadingState } from "../components/game/AsyncState";
+import { EmptyState, ErrorState, LoadingState } from "../components/game/AsyncState";
 import { PageContainer } from "../components/game/PageContainer";
 import { Reveal } from "../components/game/fx/Reveal";
 import { linkCls } from "../components/game/styles";
@@ -14,7 +15,7 @@ import { useAsync } from "../hooks/useAsync";
 export function HistoryDetailPage() {
   const { battleId = "" } = useParams();
   const { history } = useServices();
-  const load = useCallback(() => history.getBattle(battleId), [history, battleId]);
+  const load = useCallback(() => history.getBattle(battleId).catch(nullIfNotFound), [history, battleId]);
   const { state, reload } = useAsync(load);
 
   return (
@@ -26,7 +27,10 @@ export function HistoryDetailPage() {
         </Link>
         {state.status === "loading" && <LoadingState label="Loading battle…" />}
         {state.status === "error" && <ErrorState message={state.message} onRetry={reload} />}
-        {state.status === "success" && (
+        {state.status === "success" && state.data === null && (
+          <EmptyState title="Battle not found" description="This battle could not be found." />
+        )}
+        {state.status === "success" && state.data !== null && (
           <Reveal>
             <BattleReport result={state.data} variant="history" />
           </Reveal>
