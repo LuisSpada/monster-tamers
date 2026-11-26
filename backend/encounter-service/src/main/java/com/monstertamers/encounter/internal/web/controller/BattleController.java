@@ -92,4 +92,15 @@ public class BattleController {
         UUID accountId = UUID.fromString(jwt.getSubject());
         return battleHistoryService.findAll(accountId);
     }
+
+    @GetMapping("/battles/{battleId}")
+    @Operation(summary = "Get a battle of the authenticated account with its event log")
+    @ApiResponse(responseCode = "200", description = "Battle returned")
+    @ApiResponse(responseCode = "401", description = "Authentication is required")
+    @ApiResponse(responseCode = "404", description = "Battle not found")
+    public BattleResultDto getBattle(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID battleId) {
+
+        UUID accountId = UUID.fromString(jwt.getSubject());
+        return battleHistoryService.findById(accountId, battleId);
+    }
 }
