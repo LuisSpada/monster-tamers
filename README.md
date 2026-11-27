@@ -80,10 +80,10 @@ exists:
   available.
 
 The frontend uses a hybrid service layer. Authentication, monster collection,
-teams, encounter lists/details and starting a battle call the real Gateway.
-Player progress, stat upgrades, captured-monster rewards and battle history
-still use mock or in-memory fallback data where the backend contract is not
-finished.
+monster species catalogue, teams, encounter lists/details and starting a battle
+call the real Gateway. Player progress, stat upgrades, captured-monster rewards
+and battle history still use mock or in-memory fallback data where the backend
+contract is not finished.
 
 ### First delivery: 15.11.26
 
@@ -107,9 +107,11 @@ finished.
   load the collection through the Gateway.
 - **US-09 - View the monsters I own: Implemented.** The collection page lists
   the authenticated player's monsters using the real Monster Service.
-- **US-10 - Browse all monsters available in the game: Not implemented.**
-  There is currently no separate catalogue of all obtainable monsters; the
-  existing endpoint lists the authenticated player's collection.
+- **US-10 - Browse all monsters available in the game: Implemented.**
+  The Monster Service exposes `/api/monsters/species` (and
+  `/api/monsters/species/{speciesId}`) backed by the `monster_species`
+  catalogue table, and the frontend Monsters page (`/monsters`) displays all
+  monster species in the game with search and class filtering.
 - **US-11 - View a monster's image and characteristics: Partially
   implemented.** The collection and detail pages show images, classes, stats,
   skills, traits and progression, but detail retrieval is not yet fully
@@ -296,8 +298,9 @@ the user stories above.
 
 - Registration, confirmation-code login, JWT sessions and account-owned
   access checks are implemented.
-- Initial monster collection creation, personal collection browsing, team
-  preparation and team-rule validation are implemented.
+- Initial monster collection creation, personal collection browsing, all-species
+  catalogue browsing, team preparation and team-rule validation are
+  implemented.
 - Encounter catalogue/detail views, backend battle orchestration, simulator
   results, victory/defeat outcomes and battle-result presentation are
   implemented.
@@ -308,8 +311,6 @@ the user stories above.
 
 **Still missing or incomplete**
 
-- The all-monsters catalogue is not separate from the authenticated player's
-  collection.
 - Captured/earned-monster rewards, XP/stat upgrades, player progress and
   history are not yet consistently persisted and retrieved end to end.
 - The frontend history and profile flows are therefore not yet reliable after
