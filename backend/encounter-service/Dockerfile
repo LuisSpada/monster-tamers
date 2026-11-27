@@ -21,7 +21,7 @@ COPY shared-contracts/src shared-contracts/src
 COPY shared-web/src shared-web/src
 COPY encounter-service/src encounter-service/src
 
-RUN ./mvnw \
+RUN --mount=type=cache,target=/root/.m2 ./mvnw \
     -pl encounter-service \
     -am \
     package \
@@ -52,6 +52,8 @@ ENV SERVER_SSL_ENABLED=true
 ENV SERVER_SSL_KEY_STORE=/run/tls/server.p12
 ENV SERVER_SSL_KEY_STORE_TYPE=PKCS12
 ENV SERVER_SSL_KEY_ALIAS=encounter-service
+ENV TLS_TRUST_STORE=/run/tls/truststore.p12
+ENV TLS_TRUST_STORE_TYPE=PKCS12
 
 HEALTHCHECK \
     --interval=30s \
@@ -66,4 +68,4 @@ HEALTHCHECK \
         "https://127.0.0.1:${SERVER_PORT}/actuator/health" \
         || exit 1
 
-ENTRYPOINT ["sh", "-c", "if [ -f /run/secrets/tls_password ]; then export SERVER_SSL_KEY_STORE_PASSWORD=\"$(cat /run/secrets/tls_password)\"; fi; exec java -Dserver.port=\"$SERVER_PORT\" -jar /app/service.jar"]
+ENTRYPOINT ["sh", "-c", "if [ -f /run/secrets/tls_password ]; then TLS_PASSWORD=\"$(cat /run/secrets/tls_password)\"; export SERVER_SSL_KEY_STORE_PASSWORD=\"$TLS_PASSWORD\"; export TLS_TRUST_STORE_PASSWORD=\"$TLS_PASSWORD\"; export JAVA_TOOL_OPTIONS=\"${JAVA_TOOL_OPTIONS:-} -Djavax.net.ssl.trustStore=$TLS_TRUST_STORE -Djavax.net.ssl.trustStoreType=$TLS_TRUST_STORE_TYPE -Djavax.net.ssl.trustStorePassword=$TLS_PASSWORD\"; fi; exec java -Dserver.port=\"$SERVER_PORT\" -jar /app/service.jar"]

@@ -1,5 +1,6 @@
 package com.monstertamers.encounter.internal.application;
 
+import com.monstertamers.encounter.internal.application.battle.BattleFinishedEvent;
 import com.monstertamers.encounter.internal.domain.AccountEncounterProgress;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
@@ -22,10 +23,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BattleOrchestrationService {
@@ -38,8 +42,10 @@ public class BattleOrchestrationService {
     private final AccountEncounterProgressRepository progressRepository;
     private final MonsterClient monsterClient;
     private final SimulatorClient simulatorClient;
+    private final ApplicationEventPublisher eventPublisher;
+    private final BattleHistoryService battleHistoryService;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public BattleResultDto startBattle(
             UUID accountId,
             UUID encounterId,
@@ -99,7 +105,19 @@ public class BattleOrchestrationService {
                 simulatorResponse
         );
 
-        return toResultDto(simulatorResponse);
+        BattleResultDto result = battleHistoryService.save(
+                accountId,
+                encounter,
+                simulatorResponse
+        );
+
+        eventPublisher.publishEvent(new BattleFinishedEvent(
+            accountId,
+            encounterId,
+            result.outcome()
+        ));
+
+        return result;
     }
 
     private EncounterStatus resolveStatus(
@@ -135,6 +153,11 @@ public class BattleOrchestrationService {
                     )
             );
         } catch (RestClientException exception) {
+            log.warn(
+                    "Monster Service call failed for account {}",
+                    accountId,
+                    exception
+            );
             throw new ApiException(
                     EncounterErrorCode
                             .BATTLE_MONSTERS_UNAVAILABLE
@@ -148,6 +171,10 @@ public class BattleOrchestrationService {
         try {
             return simulatorClient.simulate(request);
         } catch (RestClientException exception) {
+            log.warn(
+                    "Simulator Service call failed",
+                    exception
+            );
             throw new ApiException(
                     EncounterErrorCode
                             .SIMULATOR_UNAVAILABLE
@@ -300,10 +327,6 @@ public class BattleOrchestrationService {
                         || response.encounterName().isBlank()
                         || response.playedAt() == null
                         || response.outcome() == null
-                        || !Set.of(
-                                "victory",
-                                "defeat"
-                        ).contains(response.outcome())
                         || response.rounds() < 1
                         || response.participants() == null
                         || response.events() == null
@@ -313,50 +336,5 @@ public class BattleOrchestrationService {
                             .SIMULATOR_RESPONSE_INVALID
             );
         }
-    }
-
-    private BattleResultDto toResultDto(
-            SimulatorBattleResponse response
-    ) {
-        List<BattleResultDto.ParticipantDto>
-                participants =
-                response.participants()
-                        .stream()
-                        .map(participant ->
-                                new BattleResultDto
-                                        .ParticipantDto(
-                                        participant.monsterId(),
-                                        participant.name(),
-                                        participant.monsterClass(),
-                                        participant.level()
-                                )
-                        )
-                        .toList();
-
-        List<BattleResultDto.EventDto> events =
-                response.events()
-                        .stream()
-                        .map(event ->
-                                new BattleResultDto.EventDto(
-                                        event.id(),
-                                        event.round(),
-                                        event.side(),
-                                        event.kind(),
-                                        event.message()
-                                )
-                        )
-                        .toList();
-
-        return new BattleResultDto(
-                response.id(),
-                response.encounterId(),
-                response.encounterName(),
-                response.finalBoss(),
-                response.playedAt(),
-                response.outcome(),
-                response.rounds(),
-                participants,
-                events
-        );
     }
 }

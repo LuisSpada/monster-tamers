@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
 import com.monstertamers.encounter.internal.integration.monster.BattleMonsterDto;
@@ -23,6 +24,7 @@ import com.monstertamers.encounter.internal.persistence.EncounterOpponentReposit
 import com.monstertamers.encounter.internal.persistence.EncounterRepository;
 import com.monstertamers.encounter.internal.web.dto.request.StartBattleRequest;
 import com.monstertamers.encounter.internal.web.dto.response.BattleResultDto;
+import com.monstertamers.encounter.internal.web.dto.response.EncounterShortDto;
 import com.monstertamers.web.error.ApiException;
 import java.time.Instant;
 import java.util.List;
@@ -35,6 +37,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestClientException;
 
@@ -85,6 +88,12 @@ class BattleOrchestrationServiceTest {
 
     @Mock
     private SimulatorClient simulatorClient;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private BattleHistoryService battleHistoryService;
 
     @InjectMocks
     private BattleOrchestrationService service;
@@ -169,35 +178,32 @@ class BattleOrchestrationServiceTest {
                 simulatorClient.simulate(any())
         ).thenReturn(simulatorResponse);
 
+        BattleResultDto savedResult = new BattleResultDto(
+                BATTLE_ID,
+                new EncounterShortDto(ENCOUNTER_ID, "Meadow Scouts", false),
+                Instant.parse("2026-11-14T12:00:00Z"),
+                BattleOutcome.victory,
+                3,
+                List.of(),
+                List.of()
+        );
+
+        when(
+                battleHistoryService.save(
+                        ACCOUNT_ID,
+                        encounter,
+                        simulatorResponse
+                )
+        ).thenReturn(savedResult);
+
         BattleResultDto result = service.startBattle(
                 ACCOUNT_ID,
                 ENCOUNTER_ID,
                 new StartBattleRequest(requestedIds)
         );
 
-        assertThat(result.id())
-                .isEqualTo(BATTLE_ID);
-
-        assertThat(result.encounterId())
-                .isEqualTo(ENCOUNTER_ID);
-
-        assertThat(result.encounterName())
-                .isEqualTo("Meadow Scouts");
-
-        assertThat(result.outcome())
-                .isEqualTo("victory");
-
-        assertThat(result.rounds())
-                .isEqualTo(3);
-
-        assertThat(result.participants())
-                .extracting(
-                        BattleResultDto.ParticipantDto::monsterId
-                )
-                .containsExactly(
-                        SECOND_MONSTER_ID,
-                        FIRST_MONSTER_ID
-                );
+        assertThat(result)
+                .isSameAs(savedResult);
 
         verify(monsterClient)
                 .loadBattleMonsters(
@@ -631,7 +637,7 @@ class BattleOrchestrationServiceTest {
                         Instant.parse(
                                 "2026-11-14T12:00:00Z"
                         ),
-                        "victory",
+                        BattleOutcome.victory,
                         2,
                         List.of(),
                         List.of()
@@ -687,7 +693,7 @@ class BattleOrchestrationServiceTest {
                         Instant.parse(
                                 "2026-11-14T12:00:00Z"
                         ),
-                        "draw",
+                        null,
                         2,
                         List.of(),
                         List.of()
@@ -837,7 +843,7 @@ class BattleOrchestrationServiceTest {
                 Instant.parse(
                         "2026-11-14T12:00:00Z"
                 ),
-                "victory",
+                BattleOutcome.victory,
                 3,
                 participants,
                 List.of(

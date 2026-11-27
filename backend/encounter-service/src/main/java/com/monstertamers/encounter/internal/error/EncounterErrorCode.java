@@ -23,6 +23,12 @@ public enum EncounterErrorCode implements ErrorCode {
             "Encounter is locked"
     ),
 
+    BATTLE_NOT_FOUND(
+            "battle.not_found",
+            HttpStatus.NOT_FOUND,
+            "Battle not found"
+    ),
+
     BATTLE_TEAM_INVALID(
             "battle.team_invalid",
             HttpStatus.UNPROCESSABLE_CONTENT,

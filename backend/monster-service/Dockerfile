@@ -21,7 +21,7 @@ COPY shared-contracts/src shared-contracts/src
 COPY shared-web/src shared-web/src
 COPY monster-service/src monster-service/src
 
-RUN ./mvnw \
+RUN --mount=type=cache,target=/root/.m2 ./mvnw \
     -pl monster-service \
     -am \
     package \

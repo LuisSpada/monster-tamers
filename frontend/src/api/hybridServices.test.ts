@@ -664,62 +664,7 @@ describe("createHybridServices", () => {
     });
   });
 
-  it("makes a newly started backend battle available to the result route", async () => {
-    setAccessToken(
-      "battle-result-token",
-    );
-
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify(
-            backendBattleResult,
-          ),
-          {
-            status: 200,
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-          },
-        ),
-      );
-
-    vi.stubGlobal(
-      "fetch",
-      fetchMock,
-    );
-
-    const services =
-      createHybridServices(
-        baseUrl,
-        {
-          latencyMs: 0,
-        },
-      );
-
-    const started =
-      await services.battles
-        .startBattle(
-          firstEncounterId,
-          [
-            secondMonsterId,
-            firstMonsterId,
-          ],
-        );
-
-    const loaded =
-      await services.history
-        .getBattle(started.id);
-
-    expect(loaded).toBe(started);
-
-    expect(fetchMock)
-      .toHaveBeenCalledTimes(1);
-  });
-
-  it("keeps players, monster details, stat spending and persisted history mock-backed", async () => {
+  it("keeps players, monster details and stat spending mock-backed", async () => {
     const fetchMock = vi.fn();
 
     vi.stubGlobal(
@@ -737,9 +682,6 @@ describe("createHybridServices", () => {
 
     await services.players
       .getProgress();
-
-    await services.history
-      .listBattles();
 
     const monster =
       await services.monsters

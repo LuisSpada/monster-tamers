@@ -147,10 +147,14 @@ export function createHttpServices(
           endpoints.battles,
         ),
 
-      getBattle: (battleId) =>
-        http.get<BattleResult>(
-          endpoints.battle(battleId),
-        ),
+      getBattle: async (battleId) => {
+        const response =
+          await http.get<BackendBattleResult>(
+            endpoints.battle(battleId),
+          );
+
+        return toBattleResult(response);
+      },
     },
   };
 }

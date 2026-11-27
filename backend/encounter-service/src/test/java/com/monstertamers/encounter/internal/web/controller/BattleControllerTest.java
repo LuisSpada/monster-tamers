@@ -11,9 +11,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.monstertamers.encounter.internal.application.BattleHistoryService;
 import com.monstertamers.encounter.internal.application.BattleOrchestrationService;
+import com.monstertamers.encounter.internal.domain.BattleOutcome;
 import com.monstertamers.encounter.internal.web.dto.request.StartBattleRequest;
 import com.monstertamers.encounter.internal.web.dto.response.BattleResultDto;
+import com.monstertamers.encounter.internal.web.dto.response.EncounterShortDto;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -87,7 +90,10 @@ class BattleControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(
                         new BattleController(
-                                battleOrchestrationService
+                                battleOrchestrationService,
+                                org.mockito.Mockito.mock(
+                                        BattleHistoryService.class
+                                )
                         )
                 )
                 .setValidator(validator)
@@ -399,13 +405,11 @@ class BattleControllerTest {
 
         return new BattleResultDto(
                 BATTLE_ID,
-                ENCOUNTER_ID,
-                "Meadow Scouts",
-                false,
+                new EncounterShortDto(ENCOUNTER_ID, "Meadow Scouts", false),
                 Instant.parse(
                         "2026-11-14T12:00:00Z"
                 ),
-                "victory",
+                BattleOutcome.victory,
                 3,
                 participants,
                 List.of(

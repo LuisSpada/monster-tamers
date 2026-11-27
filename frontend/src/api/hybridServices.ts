@@ -4,7 +4,6 @@ import {
   createMockServices,
   type MockOptions,
 } from "./mock/mockServices";
-import type { BattleResult } from "../domain/types";
 
 /**
  * Uses the real backend for functionality that has been integrated.
@@ -16,17 +15,13 @@ import type { BattleResult } from "../domain/types";
  * - encounters.listEncounters()
  * - encounters.getEncounter()
  * - battles.startBattle()
+ * - history.listBattles()
+ * - history.getBattle()
  *
  * Mock-backed operations:
  * - players.getProgress()
  * - monsters.getMonster()
  * - monsters.spendStatPoint()
- * - history.listBattles()
- * - persisted history fallback
- *
- * A newly started battle is cached in memory so that the battle-result
- * route can display it immediately. The backend does not yet provide
- * persisted battle-history lookup for this result.
  */
 export function createHybridServices(
   baseUrl: string,
@@ -37,9 +32,6 @@ export function createHybridServices(
 
   const httpServices =
     createHttpServices(baseUrl);
-
-  const recentBattles =
-    new Map<string, BattleResult>();
 
   return {
     players: mockServices.players,
@@ -78,43 +70,16 @@ export function createHybridServices(
     },
 
     battles: {
-      startBattle: async (
-        encounterId,
-        monsterIds,
-      ) => {
-        const result =
-          await httpServices.battles
-            .startBattle(
-              encounterId,
-              monsterIds,
-            );
-
-        recentBattles.set(
-          result.id,
-          result,
-        );
-
-        return result;
-      },
+      startBattle:
+        httpServices.battles.startBattle,
     },
 
     history: {
       listBattles:
-        mockServices.history.listBattles,
+        httpServices.history.listBattles,
 
-      getBattle: async (
-        battleId,
-      ) => {
-        const recentResult =
-          recentBattles.get(battleId);
-
-        if (recentResult) {
-          return recentResult;
-        }
-
-        return mockServices.history
-          .getBattle(battleId);
-      },
+      getBattle:
+        httpServices.history.getBattle,
     },
   };
 }

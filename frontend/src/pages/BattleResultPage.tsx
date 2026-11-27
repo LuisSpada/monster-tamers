@@ -5,10 +5,12 @@ import {
 } from "react-router-dom";
 import { RotateCcw } from "lucide-react";
 import { paths } from "../app/paths";
+import { nullIfNotFound } from "../api/errors";
 import { useServices } from "../api/useServices";
 import { PageHeader } from "../components/common/PageHeader";
 import { BattleReport } from "../components/game/BattleReport";
 import {
+  EmptyState,
   ErrorState,
   LoadingState,
 } from "../components/game/AsyncState";
@@ -26,7 +28,9 @@ export function BattleResultPage() {
 
   const load = useCallback(
     () =>
-      history.getBattle(battleId),
+      history
+        .getBattle(battleId)
+        .catch(nullIfNotFound),
     [history, battleId],
   );
 
@@ -52,7 +56,24 @@ export function BattleResultPage() {
           />
         )}
 
-        {state.status === "success" && (
+        {state.status === "success" &&
+          state.data === null && (
+          <EmptyState
+            title="Battle not found"
+            description="This battle could not be found."
+            action={
+              <Link
+                to={paths.history}
+                className={btnPrimary}
+              >
+                Go to battle history
+              </Link>
+            }
+          />
+        )}
+
+        {state.status === "success" &&
+          state.data !== null && (
           <>
             {state.data.outcome ===
               "victory" && (
