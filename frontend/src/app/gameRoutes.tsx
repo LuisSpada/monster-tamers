@@ -3,6 +3,7 @@ import { paths } from "./paths";
 import { BattlePreparationPage } from "../pages/BattlePreparationPage";
 import { BattleResultPage } from "../pages/BattleResultPage";
 import { CollectionPage } from "../pages/CollectionPage";
+import { MonstersPage } from "../pages/MonstersPage";
 import { EncounterDetailPage } from "../pages/EncounterDetailPage";
 import { EncounterListPage } from "../pages/EncounterListPage";
 import { HistoryDetailPage } from "../pages/HistoryDetailPage";
@@ -20,6 +21,7 @@ import { TeamPage } from "../pages/TeamPage";
 export const gameRouteElements = (
   <>
     <Route path={paths.patterns.collection} element={<CollectionPage />} />
+    <Route path={paths.patterns.monsters} element={<MonstersPage />} />
     <Route path={paths.patterns.monster} element={<MonsterDetailPage />} />
     <Route path={paths.patterns.team} element={<TeamPage />} />
     <Route path={paths.patterns.encounters} element={<EncounterListPage />} />

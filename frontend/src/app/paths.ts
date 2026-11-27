@@ -2,6 +2,7 @@
 export const paths = {
   home: "/",
   collection: "/collection",
+  monsters: "/monsters",
   monster: (id: string) => `/collection/${id}`,
   team: "/team",
   encounters: "/encounters",
@@ -15,6 +16,7 @@ export const paths = {
   /** Relative patterns for react-router (nested under the layout route). */
   patterns: {
     collection: "collection",
+    monsters: "monsters",
     monster: "collection/:monsterId",
     team: "team",
     encounters: "encounters",

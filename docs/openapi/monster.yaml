@@ -12,6 +12,22 @@ paths:
       summary: List the current monster collection
       responses:
         '200': { description: Monster collection }
+  /api/monsters/species:
+    get:
+      summary: List all monster species in the game
+      responses:
+        '200': { description: Monster species catalogue }
+  /api/monsters/species/{speciesId}:
+    get:
+      summary: Get a monster species by ID
+      parameters:
+        - name: speciesId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Monster species details }
+        '404': { description: Monster species not found }
   /api/monsters/{monsterId}:
     get:
       summary: Get a monster

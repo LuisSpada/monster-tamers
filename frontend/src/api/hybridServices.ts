@@ -43,6 +43,9 @@ export function createHybridServices(
       listMonsters:
         httpServices.monsters.listMonsters,
 
+      listSpecies:
+        httpServices.monsters.listSpecies,
+
       spendStatPoint:
         mockServices.monsters
           .spendStatPoint,

@@ -1,6 +1,7 @@
 export const endpoints = {
   playerProgress: "/api/players/me/progress",
   monsters: "/api/monsters",
+  monsterSpecies: "/api/monsters/species",
   monster: (id: string) => `/api/monsters/${encodeURIComponent(id)}`,
   spendStatPoint: (id: string) => `/api/monsters/${encodeURIComponent(id)}/stat-points`,
   team: "/api/monsters/team",

@@ -9,6 +9,7 @@ import type {
   BattleSummary,
   Encounter,
   Monster,
+  MonsterSpecies,
   PlayerProgress,
   TeamState,
 } from "../domain/types";
@@ -70,6 +71,11 @@ export function createHttpServices(
       listMonsters: () =>
         http.get<Monster[]>(
           endpoints.monsters,
+        ),
+
+      listSpecies: () =>
+        http.get<MonsterSpecies[]>(
+          endpoints.monsterSpecies,
         ),
 
       getMonster: (monsterId) =>

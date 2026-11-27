@@ -37,6 +37,22 @@ paths:
             schema: { type: object, additionalProperties: true }
       responses:
         '200': { description: Battle result }
+  /api/encounters/battles:
+    get:
+      summary: List the authenticated account's battles newest first
+      responses:
+        '200': { description: Battle summaries }
+  /api/encounters/battles/{battleId}:
+    get:
+      summary: Get a battle result with its event log
+      parameters:
+        - name: battleId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Battle result }
+        '404': { description: Battle not found }
 components:
   securitySchemes:
     bearerAuth:

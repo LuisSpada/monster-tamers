@@ -65,7 +65,7 @@ flowchart LR
 | 2 | Frontend | Gateway | HTTPS + JWT | API requests |
 | 3 | Gateway | Auth Service | HTTPS/TLS | Login, registration, confirmation |
 | 4 | Gateway | Player Service | HTTPS/TLS + JWT | Player profile |
-| 5 | Gateway | Monster Service | HTTPS/TLS + JWT | Collection and teams |
+| 5 | Gateway | Monster Service | HTTPS/TLS + JWT | Collection, species catalogue, and teams |
 | 6 | Gateway | Encounter Service | HTTPS/TLS + JWT | Encounters and battles |
 | 7 | Auth Service | Player Service | HTTPS/TLS | Create player after registration |
 | 8 | Player Service | Monster Service | HTTPS/TLS | Initialize collection |
@@ -121,47 +121,50 @@ flowchart LR
     Frontend -->|"8 GET /api/monsters + JWT"| Gateway
     Gateway -->|"9 GET /api/monsters + JWT"| Monster
 
-    Frontend -->|"10 GET /api/monsters/team + JWT"| Gateway
-    Gateway -->|"11 GET /api/monsters/team + JWT"| Monster
+    Frontend -->|"10 GET /api/monsters/species + JWT"| Gateway
+    Gateway -->|"11 GET /api/monsters/species + JWT"| Monster
 
-    Frontend -->|"12 PUT /api/monsters/team + JWT"| Gateway
-    Gateway -->|"13 PUT /api/monsters/team + JWT"| Monster
+    Frontend -->|"12 GET /api/monsters/team + JWT"| Gateway
+    Gateway -->|"13 GET /api/monsters/team + JWT"| Monster
 
-    Frontend -->|"14 GET /api/encounters + JWT"| Gateway
-    Gateway -->|"15 GET /api/encounters + JWT"| Encounter
+    Frontend -->|"14 PUT /api/monsters/team + JWT"| Gateway
+    Gateway -->|"15 PUT /api/monsters/team + JWT"| Monster
 
-    Frontend -->|"16 GET /api/encounters/{encounterId} + JWT"| Gateway
-    Gateway -->|"17 GET /api/encounters/{encounterId} + JWT"| Encounter
+    Frontend -->|"16 GET /api/encounters + JWT"| Gateway
+    Gateway -->|"17 GET /api/encounters + JWT"| Encounter
 
-    Frontend -->|"18 POST /api/encounters/{encounterId}/battles + JWT"| Gateway
-    Gateway -->|"19 POST /api/encounters/{encounterId}/battles + JWT"| Encounter
+    Frontend -->|"18 GET /api/encounters/{encounterId} + JWT"| Gateway
+    Gateway -->|"19 GET /api/encounters/{encounterId} + JWT"| Encounter
 
-    Frontend -.->|"20 GET /api/players/me/progress + JWT"| Gateway
-    Gateway -.->|"21 GET /api/players/me/progress + JWT"| Player
+    Frontend -->|"20 POST /api/encounters/{encounterId}/battles + JWT"| Gateway
+    Gateway -->|"21 POST /api/encounters/{encounterId}/battles + JWT"| Encounter
 
-    Frontend -.->|"22 GET /api/monsters/{monsterId} + JWT"| Gateway
-    Gateway -.->|"23 GET /api/monsters/{monsterId} + JWT"| Monster
+    Frontend -.->|"22 GET /api/players/me/progress + JWT"| Gateway
+    Gateway -.->|"23 GET /api/players/me/progress + JWT"| Player
 
-    Frontend -.->|"24 POST /api/monsters/{monsterId}/stat-points + JWT"| Gateway
-    Gateway -.->|"25 POST /api/monsters/{monsterId}/stat-points + JWT"| Monster
+    Frontend -.->|"24 GET /api/monsters/{monsterId} + JWT"| Gateway
+    Gateway -.->|"25 GET /api/monsters/{monsterId} + JWT"| Monster
 
-    Frontend -.->|"26 GET /api/encounters/battles + JWT"| Gateway
-    Gateway -.->|"27 GET /api/encounters/battles + JWT"| Encounter
+    Frontend -.->|"26 POST /api/monsters/{monsterId}/stat-points + JWT"| Gateway
+    Gateway -.->|"27 POST /api/monsters/{monsterId}/stat-points + JWT"| Monster
 
-    Frontend -.->|"28 GET /api/encounters/battles/{battleId} + JWT"| Gateway
-    Gateway -.->|"29 GET /api/encounters/battles/{battleId} + JWT"| Encounter
+    Frontend -->|"28 GET /api/encounters/battles + JWT"| Gateway
+    Gateway -->|"29 GET /api/encounters/battles + JWT"| Encounter
 
-    Auth -->|"30 POST /internal/players over HTTPS"| Player
-    Player -->|"31 PUT /internal/accounts/{accountId}/collection over HTTPS"| Monster
-    Encounter -->|"32 POST /internal/accounts/{accountId}/battle-monsters over HTTPS"| Monster
-    Encounter -->|"33 POST /internal/battles over HTTPS"| Simulator
+    Frontend -->|"30 GET /api/encounters/battles/{battleId} + JWT"| Gateway
+    Gateway -->|"31 GET /api/encounters/battles/{battleId} + JWT"| Encounter
 
-    Auth -->|"34 JDBC + DB credentials"| AuthDB
-    Player -->|"35 JDBC + DB credentials"| PlayerDB
-    Monster -->|"36 JDBC + DB credentials"| MonsterDB
-    Encounter -->|"37 JDBC + DB credentials"| EncounterDB
+    Auth -->|"32 POST /internal/players over HTTPS"| Player
+    Player -->|"33 PUT /internal/accounts/{accountId}/collection over HTTPS"| Monster
+    Encounter -->|"34 POST /internal/accounts/{accountId}/battle-monsters over HTTPS"| Monster
+    Encounter -->|"35 POST /internal/battles over HTTPS"| Simulator
 
-    linkStyle 19,20,21,22,23,24,25,26,27,28 stroke:#d97706,stroke-width:2px
+    Auth -->|"36 JDBC + DB credentials"| AuthDB
+    Player -->|"37 JDBC + DB credentials"| PlayerDB
+    Monster -->|"38 JDBC + DB credentials"| MonsterDB
+    Encounter -->|"39 JDBC + DB credentials"| EncounterDB
+
+    linkStyle 21,22,23,24,25,26 stroke:#d97706,stroke-width:2px
 ```
 
 **Legend:**
@@ -189,34 +192,36 @@ private service network and configured TLS trust.
 | 7 | Gateway Service | Auth Service | HTTPS/TLS | `POST /api/auth/registrations/{registrationId}/confirmation` | Confirm and activate user account |
 | 8 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/monsters` | Request player's monster collection |
 | 9 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `GET /api/monsters` | Retrieve player's monster collection |
-| 10 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/monsters/team` | Request active monster team |
-| 11 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `GET /api/monsters/team` | Retrieve active monster team |
-| 12 | Frontend | Gateway Service | HTTPS + JWT | `PUT /api/monsters/team` | Submit updated monster team |
-| 13 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `PUT /api/monsters/team` | Update active monster team |
-| 14 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters` | Request available encounters |
-| 15 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters` | Retrieve available encounters |
-| 16 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters/{encounterId}` | Request specific encounter details |
-| 17 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters/{encounterId}` | Retrieve specific encounter details |
-| 18 | Frontend | Gateway Service | HTTPS + JWT | `POST /api/encounters/{encounterId}/battles` | Request battle execution in encounter |
-| 19 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `POST /api/encounters/{encounterId}/battles` | Initiate and execute encounter battle |
-| 20 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/players/me/progress` | Request player progress (mock-backed in frontend) |
-| 21 | Gateway Service | Player Service | HTTPS/TLS + JWT | `GET /api/players/me/progress` | Retrieve player progress (mock-backed in frontend) |
-| 22 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/monsters/{monsterId}` | Request specific monster details (mock-backed in frontend) |
-| 23 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `GET /api/monsters/{monsterId}` | Retrieve specific monster details (mock-backed in frontend) |
-| 24 | Frontend | Gateway Service | HTTPS + JWT | `POST /api/monsters/{monsterId}/stat-points` | Submit monster stat-point allocation (mock-backed in frontend) |
-| 25 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `POST /api/monsters/{monsterId}/stat-points` | Allocate monster stat points (mock-backed in frontend) |
-| 26 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters/battles` | Request battle history list (mock-backed in frontend) |
-| 27 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters/battles` | Retrieve battle history list (mock-backed in frontend) |
-| 28 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters/battles/{battleId}` | Request specific battle details (mock-backed in frontend) |
-| 29 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters/battles/{battleId}` | Retrieve specific battle details (mock-backed in frontend) |
-| 30 | Auth Service | Player Service | HTTPS/TLS | `POST /internal/players` | Create player profile after registration |
-| 31 | Player Service | Monster Service | HTTPS/TLS | `PUT /internal/accounts/{accountId}/collection` | Initialize starter monster collection |
-| 32 | Encounter Service | Monster Service | HTTPS/TLS | `POST /internal/accounts/{accountId}/battle-monsters` | Load battle monsters for encounter |
-| 33 | Encounter Service | Simulator Service | HTTPS/TLS | `POST /internal/battles` | Execute battle simulation |
-| 34 | Auth Service | Auth PostgreSQL | JDBC | — | Read/write accounts and credentials |
-| 35 | Player Service | Player PostgreSQL | JDBC | — | Read/write player profile data |
-| 36 | Monster Service | Monster PostgreSQL | JDBC | — | Read/write monsters and teams |
-| 37 | Encounter Service | Encounter PostgreSQL | JDBC | — | Read/write encounter progress and battle history |
+| 10 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/monsters/species` | Request all monster species in the game |
+| 11 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `GET /api/monsters/species` | Retrieve monster species catalogue |
+| 12 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/monsters/team` | Request active monster team |
+| 13 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `GET /api/monsters/team` | Retrieve active monster team |
+| 14 | Frontend | Gateway Service | HTTPS + JWT | `PUT /api/monsters/team` | Submit updated monster team |
+| 15 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `PUT /api/monsters/team` | Update active monster team |
+| 16 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters` | Request available encounters |
+| 17 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters` | Retrieve available encounters |
+| 18 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters/{encounterId}` | Request specific encounter details |
+| 19 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters/{encounterId}` | Retrieve specific encounter details |
+| 20 | Frontend | Gateway Service | HTTPS + JWT | `POST /api/encounters/{encounterId}/battles` | Request battle execution in encounter |
+| 21 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `POST /api/encounters/{encounterId}/battles` | Initiate and execute encounter battle |
+| 22 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/players/me/progress` | Request player progress (mock-backed in frontend) |
+| 23 | Gateway Service | Player Service | HTTPS/TLS + JWT | `GET /api/players/me/progress` | Retrieve player progress (mock-backed in frontend) |
+| 24 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/monsters/{monsterId}` | Request specific monster details (mock-backed in frontend) |
+| 25 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `GET /api/monsters/{monsterId}` | Retrieve specific monster details (mock-backed in frontend) |
+| 26 | Frontend | Gateway Service | HTTPS + JWT | `POST /api/monsters/{monsterId}/stat-points` | Submit monster stat-point allocation (mock-backed in frontend) |
+| 27 | Gateway Service | Monster Service | HTTPS/TLS + JWT | `POST /api/monsters/{monsterId}/stat-points` | Allocate monster stat points (mock-backed in frontend) |
+| 28 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters/battles` | Request battle history list |
+| 29 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters/battles` | Retrieve battle history list |
+| 30 | Frontend | Gateway Service | HTTPS + JWT | `GET /api/encounters/battles/{battleId}` | Request specific battle details |
+| 31 | Gateway Service | Encounter Service | HTTPS/TLS + JWT | `GET /api/encounters/battles/{battleId}` | Retrieve specific battle details |
+| 32 | Auth Service | Player Service | HTTPS/TLS | `POST /internal/players` | Create player profile after registration |
+| 33 | Player Service | Monster Service | HTTPS/TLS | `PUT /internal/accounts/{accountId}/collection` | Initialize starter monster collection |
+| 34 | Encounter Service | Monster Service | HTTPS/TLS | `POST /internal/accounts/{accountId}/battle-monsters` | Load battle monsters for encounter |
+| 35 | Encounter Service | Simulator Service | HTTPS/TLS | `POST /internal/battles` | Execute battle simulation |
+| 36 | Auth Service | Auth PostgreSQL | JDBC | — | Read/write accounts and credentials |
+| 37 | Player Service | Player PostgreSQL | JDBC | — | Read/write player profile data |
+| 38 | Monster Service | Monster PostgreSQL | JDBC | — | Read/write monsters, species catalogue, and teams |
+| 39 | Encounter Service | Encounter PostgreSQL | JDBC | — | Read/write encounter progress and battle history |
 
 ## Trust Boundaries
 

@@ -80,10 +80,10 @@ exists:
   available.
 
 The frontend uses a hybrid service layer. Authentication, monster collection,
-teams, encounter lists/details and starting a battle call the real Gateway.
-Player progress, stat upgrades, captured-monster rewards and battle history
-still use mock or in-memory fallback data where the backend contract is not
-finished.
+monster species catalogue, teams, encounter lists/details, starting a battle
+and battle history call the real Gateway. Player progress, monster detail/stat
+upgrades and captured-monster rewards still use mock or in-memory fallback data
+where the backend contract is not finished.
 
 ### First delivery: 15.11.26
 
@@ -107,9 +107,11 @@ finished.
   load the collection through the Gateway.
 - **US-09 - View the monsters I own: Implemented.** The collection page lists
   the authenticated player's monsters using the real Monster Service.
-- **US-10 - Browse all monsters available in the game: Not implemented.**
-  There is currently no separate catalogue of all obtainable monsters; the
-  existing endpoint lists the authenticated player's collection.
+- **US-10 - Browse all monsters available in the game: Implemented.**
+  The Monster Service exposes `/api/monsters/species` (and
+  `/api/monsters/species/{speciesId}`) backed by the `monster_species`
+  catalogue table, and the frontend Monsters page (`/monsters`) displays all
+  monster species in the game with search and class filtering.
 - **US-11 - View a monster's image and characteristics: Partially
   implemented.** The collection and detail pages show images, classes, stats,
   skills, traits and progression, but detail retrieval is not yet fully
@@ -147,12 +149,12 @@ finished.
 
 #### History & Integrity
 
-- **US-23 - View previous encounters: Partially implemented.** A history page
-  and filtering UI exist, but the real backend history endpoint is not yet
-  integrated; the current page uses mock/in-memory history.
-- **US-24 - View details of a previous encounter: Partially implemented.**
-  History detail navigation and rendering exist, but persisted lookup after a
-  new session is still missing from the backend/frontend integration.
+- **US-23 - View previous encounters: Implemented.** The history page and
+  filtering UI load persisted battles newest-first from the Encounter Service
+  through the Gateway.
+- **US-24 - View details of a previous encounter: Implemented.** The history
+  detail page loads persisted battle results and event logs from the Encounter
+  Service by battle ID, showing a not-found state for unknown IDs.
 
 #### Player Interface
 
@@ -174,10 +176,9 @@ finished.
 
 - **US-25 - Protect collection, history and progress from tampering or loss:
   Partially implemented.** Service-owned PostgreSQL persistence, ownership
-  checks, validation and input/error handling are present. Complete
-  persisted history/progress retrieval and verification after logout/login are
-  not yet available through the frontend, and the current history fallback is
-  not durable.
+  checks, validation, input/error handling and persisted battle-history lookup
+  are present. Complete persisted player-progress retrieval and stat-upgrade
+  persistence are not yet available through the frontend.
 
 ### Our requirements: 15.12.26
 
@@ -259,8 +260,8 @@ the user stories above.
 
 **Still missing or incomplete**
 
-- The frontend is not yet fully connected to the backend: progress, history,
-  rewards and stat upgrades still have mock or in-memory fallbacks.
+- The frontend is not yet fully connected to the backend: progress, rewards
+  and stat upgrades still have mock or in-memory fallbacks.
 - Some business logic still exists in the frontend mock service for local
   simulation. The final client should delegate all authoritative rules and
   state changes to backend services.
@@ -296,11 +297,12 @@ the user stories above.
 
 - Registration, confirmation-code login, JWT sessions and account-owned
   access checks are implemented.
-- Initial monster collection creation, personal collection browsing, team
-  preparation and team-rule validation are implemented.
-- Encounter catalogue/detail views, backend battle orchestration, simulator
-  results, victory/defeat outcomes and battle-result presentation are
+- Initial monster collection creation, personal collection browsing, all-species
+  catalogue browsing, team preparation and team-rule validation are
   implemented.
+- Encounter catalogue/detail views, backend battle orchestration, simulator
+  results, victory/defeat outcomes, persisted battle history and battle-result
+  presentation are implemented.
 - The frontend provides the prepare-encounter-result-progress flow and
   includes history and profile screens.
 - Backend services, rather than a client-provided outcome, calculate the real
@@ -308,14 +310,12 @@ the user stories above.
 
 **Still missing or incomplete**
 
-- The all-monsters catalogue is not separate from the authenticated player's
-  collection.
-- Captured/earned-monster rewards, XP/stat upgrades, player progress and
-  history are not yet consistently persisted and retrieved end to end.
-- The frontend history and profile flows are therefore not yet reliable after
-  logout and login or after restarting the application.
+- Captured/earned-monster rewards, XP/stat upgrades and player progress are
+  not yet consistently persisted and retrieved end to end.
+- The frontend profile flow is therefore not yet reliable after logout and
+  login or after restarting the application.
 - The final frontend must remove mock business logic and use the backend as the
-  authoritative source for rewards, progress and encounter history.
+  authoritative source for rewards and progress.
 
 #### Testing
 
