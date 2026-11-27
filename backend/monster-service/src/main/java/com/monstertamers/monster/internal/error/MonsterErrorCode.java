@@ -16,6 +16,11 @@ public enum MonsterErrorCode implements ErrorCode {
         HttpStatus.NOT_FOUND,
         "Monster not found"
     ),
+    SPECIES_NOT_FOUND(
+        "species.not_found",
+        HttpStatus.NOT_FOUND,
+        "Monster species not found"
+    ),
     TEAM_DUPLICATE_MONSTER(
         "team.duplicate_monster",
         HttpStatus.UNPROCESSABLE_CONTENT,

@@ -1,8 +1,10 @@
 package com.monstertamers.monster.internal.application;
 
 import com.monstertamers.monster.internal.domain.Monster;
+import com.monstertamers.monster.internal.domain.MonsterSpecies;
 import com.monstertamers.monster.internal.error.MonsterErrorCode;
 import com.monstertamers.monster.internal.persistence.MonsterRepository;
+import com.monstertamers.monster.internal.persistence.MonsterSpeciesRepository;
 import com.monstertamers.monster.internal.web.dto.response.MonsterDto;
 import com.monstertamers.monster.internal.web.mapper.MonsterMapper;
 import com.monstertamers.web.error.ApiException;
@@ -25,6 +27,7 @@ public class MonsterService {
     private static final int MAX_BATTLE_TEAM_SIZE = 3;
 
     private final MonsterRepository monsterRepository;
+    private final MonsterSpeciesRepository monsterSpeciesRepository;
     private final MonsterMapper monsterMapper;
     private final MonsterGenerator monsterGenerator;
 
@@ -111,17 +114,11 @@ public class MonsterService {
 
             return;
         }
+        List<MonsterSpecies> speciesPool = monsterSpeciesRepository.findAll();
 
-        List<Monster> starters =
-                Stream.generate(
-                                monsterGenerator::generate
-                        )
-                        .limit(STARTER_COUNT)
-                        .peek(monster ->
-                                monster.setAccountId(
-                                        accountId
-                                )
-                        )
+        List<Monster> starters = Stream.generate(() -> monsterGenerator.generateRandom(speciesPool))
+                .limit(STARTER_COUNT)
+                .peek(monster -> monster.setAccountId(accountId))
                         .toList();
 
         monsterRepository.saveAll(starters);
