@@ -3,8 +3,8 @@
 The frontend is a React/Vite application using Tailwind CSS v4 and the
 pixel-art assets in `public/assets`. It supports both a hybrid HTTP mode
 (calling the Gateway for authentication, owned monsters, monster species
-catalogue, teams, encounters and battles) and a local mock mode for offline
-development and tests.
+catalogue, teams, encounters, battles and battle history) and a local mock mode
+for offline development and tests.
 
 ## Development
 
