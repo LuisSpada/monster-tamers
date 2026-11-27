@@ -19,6 +19,7 @@ import {
   MOCK_NAME_NOUNS,
   MOCK_SKILLS,
   MOCK_TRAITS,
+  MOCK_SPECIES,
   createDefaultFixtures,
   type MockFixtures,
 } from "./fixtures";
@@ -220,6 +221,7 @@ export function createMockServices(options: MockOptions = {}): Services {
     },
     monsters: {
       listMonsters: () => respond(() => state.monsters),
+      listSpecies: () => respond(() => [...MOCK_SPECIES].sort((a, b) => a.name.localeCompare(b.name))),
       getMonster: (id) => respond(() => findMonster(id)),
       spendStatPoint: (id, stat) =>
         respond(() => {

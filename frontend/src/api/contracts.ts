@@ -3,6 +3,7 @@ import type {
   BattleSummary,
   Encounter,
   Monster,
+  MonsterSpecies,
   PlayerProgress,
   StatKey,
   TeamState,
@@ -14,6 +15,7 @@ export interface PlayerService {
 
 export interface MonsterService {
   listMonsters(): Promise<Monster[]>;
+  listSpecies(): Promise<MonsterSpecies[]>;
   getMonster(monsterId: string): Promise<Monster>;
   /** Spends one pending stat point on the given stat. Rejects with ApiError when none are left. */
   spendStatPoint(monsterId: string, stat: StatKey): Promise<Monster>;

@@ -50,6 +50,16 @@ export interface Monster {
   obtainedAt: string;
 }
 
+export interface MonsterSpecies {
+  id: string;
+  name: string;
+  monsterClass: MonsterClass;
+  avatarVariant: number;
+  baseStats: Stats;
+  skill: NamedEffect;
+  trait: NamedEffect;
+}
+
 export interface Opponent {
   id: string;
   name: string;

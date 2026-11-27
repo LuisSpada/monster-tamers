@@ -15,6 +15,7 @@ const main = [
   { to: "/", label: "Home", icon: "nav-home" },
   { to: "/encounters", label: "Encounters", icon: "nav-encounters" },
   { to: "/collection", label: "Collection", icon: "nav-monsters" },
+  { to: "/monsters", label: "Monsters", icon: "nav-monsters" },
   { to: "/team", label: "Team", icon: "nav-team" },
   { to: "/battle-history", label: "Battle History", icon: "nav-history" },
 ];

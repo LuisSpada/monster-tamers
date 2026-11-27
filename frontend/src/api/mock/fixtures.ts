@@ -4,6 +4,7 @@ import {
   type BattleResult,
   type Encounter,
   type Monster,
+  type MonsterSpecies,
   type MonsterClass,
   type NamedEffect,
   type Opponent,
@@ -182,6 +183,38 @@ const encounters: Encounter[] = [
     rewardClasses: [],
     opponents: [opp("o11", "Frost Titan", "Guardian", 10, 0)],
   },
+];
+
+const sp = (
+  id: string,
+  name: string,
+  monsterClass: MonsterClass,
+  avatarVariant: number,
+  baseStats: Stats,
+  skill: NamedEffect,
+  trait: NamedEffect,
+): MonsterSpecies => ({ id, name, monsterClass, avatarVariant, baseStats, skill, trait });
+
+export const MOCK_SPECIES: MonsterSpecies[] = [
+  sp("20000000-0000-0000-0000-000000000001", "Fierce Fox", "Fighter", 0, { strength: 15, hp: 100, accuracy: 62, agility: 42 }, MOCK_SKILLS.Fighter[0], MOCK_TRAITS[0]),
+  sp("20000000-0000-0000-0000-000000000002", "Calm Drake", "Shaman", 0, { strength: 6, hp: 92, accuracy: 65, agility: 42 }, MOCK_SKILLS.Shaman[0], MOCK_TRAITS[1]),
+  sp("20000000-0000-0000-0000-000000000003", "Sturdy Cub", "Guardian", 0, { strength: 9, hp: 140, accuracy: 55, agility: 30 }, MOCK_SKILLS.Guardian[0], MOCK_TRAITS[2]),
+  sp("20000000-0000-0000-0000-000000000004", "Sly Raccoon", "Trickster", 0, { strength: 8, hp: 85, accuracy: 70, agility: 60 }, MOCK_SKILLS.Trickster[0], MOCK_TRAITS[3]),
+  sp("20000000-0000-0000-0000-000000000005", "Brave Lynx", "Fighter", 1, { strength: 16, hp: 95, accuracy: 60, agility: 44 }, MOCK_SKILLS.Fighter[1], MOCK_TRAITS[0]),
+  sp("20000000-0000-0000-0000-000000000006", "Gentle Newt", "Shaman", 2, { strength: 6, hp: 95, accuracy: 66, agility: 40 }, MOCK_SKILLS.Shaman[1], MOCK_TRAITS[1]),
+  sp("20000000-0000-0000-0000-000000000007", "Wise Owl", "Guardian", 1, { strength: 8, hp: 135, accuracy: 60, agility: 32 }, MOCK_SKILLS.Guardian[1], MOCK_TRAITS[2]),
+  sp("20000000-0000-0000-0000-000000000008", "Wily Weasel", "Trickster", 1, { strength: 9, hp: 82, accuracy: 72, agility: 62 }, MOCK_SKILLS.Trickster[1], MOCK_TRAITS[3]),
+  sp("20000000-0000-0000-0000-000000000009", "Meadow Pup", "Fighter", 0, { strength: 13, hp: 92, accuracy: 58, agility: 40 }, MOCK_SKILLS.Fighter[1], MOCK_TRAITS[0]),
+  sp("20000000-0000-0000-0000-000000000010", "Field Mouse", "Trickster", 0, { strength: 7, hp: 80, accuracy: 68, agility: 64 }, MOCK_SKILLS.Trickster[1], MOCK_TRAITS[3]),
+  sp("20000000-0000-0000-0000-000000000011", "Rock Cub", "Guardian", 0, { strength: 9, hp: 145, accuracy: 54, agility: 28 }, MOCK_SKILLS.Guardian[0], MOCK_TRAITS[1]),
+  sp("20000000-0000-0000-0000-000000000012", "Quarry Boar", "Fighter", 2, { strength: 17, hp: 108, accuracy: 56, agility: 36 }, MOCK_SKILLS.Fighter[1], MOCK_TRAITS[1]),
+  sp("20000000-0000-0000-0000-000000000013", "Ruin Wisp", "Shaman", 0, { strength: 7, hp: 86, accuracy: 68, agility: 45 }, MOCK_SKILLS.Shaman[1], MOCK_TRAITS[2]),
+  sp("20000000-0000-0000-0000-000000000014", "Moss Gecko", "Trickster", 2, { strength: 8, hp: 86, accuracy: 71, agility: 61 }, MOCK_SKILLS.Trickster[1], MOCK_TRAITS[3]),
+  sp("20000000-0000-0000-0000-000000000015", "Stone Newt", "Guardian", 2, { strength: 8, hp: 142, accuracy: 56, agility: 30 }, MOCK_SKILLS.Guardian[1], MOCK_TRAITS[1]),
+  sp("20000000-0000-0000-0000-000000000016", "Fog Wolf", "Fighter", 1, { strength: 16, hp: 102, accuracy: 62, agility: 43 }, MOCK_SKILLS.Fighter[0], MOCK_TRAITS[0]),
+  sp("20000000-0000-0000-0000-000000000017", "Forest Scout", "Trickster", 1, { strength: 9, hp: 84, accuracy: 73, agility: 63 }, MOCK_SKILLS.Trickster[0], MOCK_TRAITS[2]),
+  sp("20000000-0000-0000-0000-000000000018", "Mist Owl", "Shaman", 1, { strength: 6, hp: 94, accuracy: 67, agility: 43 }, MOCK_SKILLS.Shaman[0], MOCK_TRAITS[3]),
+  sp("20000000-0000-0000-0000-000000000019", "Frost Titan", "Guardian", 0, { strength: 12, hp: 175, accuracy: 58, agility: 26 }, MOCK_SKILLS.Guardian[0], MOCK_TRAITS[1]),
 ];
 
 let eventSeq = 0;
