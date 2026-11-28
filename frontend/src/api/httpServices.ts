@@ -7,6 +7,7 @@ import type {
   BattleParticipant,
   BattleResult,
   BattleSummary,
+  Egg,
   Encounter,
   Monster,
   MonsterSpecies,
@@ -23,6 +24,9 @@ interface BackendBattleResult {
   outcome: BattleOutcome;
   rounds: number;
   participants: BattleParticipant[];
+  rewards: {
+    egg: Egg | null;
+  };
   events: BattleEvent[];
 }
 
@@ -42,7 +46,7 @@ function toBattleResult(
     rewards: {
       xp: [],
       levelUps: [],
-      egg: null,
+      egg: response.rewards.egg,
       finalBossDefeated: false,
     },
   };
