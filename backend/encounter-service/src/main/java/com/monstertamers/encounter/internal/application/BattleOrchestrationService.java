@@ -1,7 +1,9 @@
 package com.monstertamers.encounter.internal.application;
 
 import com.monstertamers.encounter.internal.application.battle.BattleFinishedEvent;
+import com.monstertamers.encounter.internal.application.battle.rewards.BattleRewardService;
 import com.monstertamers.encounter.internal.domain.AccountEncounterProgress;
+import com.monstertamers.encounter.internal.domain.BattleRewards;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.domain.EncounterOpponent;
 import com.monstertamers.encounter.internal.domain.EncounterStatus;
@@ -44,6 +46,7 @@ public class BattleOrchestrationService {
     private final SimulatorClient simulatorClient;
     private final ApplicationEventPublisher eventPublisher;
     private final BattleHistoryService battleHistoryService;
+    private final BattleRewardService battleRewardService;
 
     @Transactional
     public BattleResultDto startBattle(
@@ -105,10 +108,13 @@ public class BattleOrchestrationService {
                 simulatorResponse
         );
 
+        BattleRewards rewards = battleRewardService.grant(accountId, encounter, simulatorResponse.outcome());
+
         BattleResultDto result = battleHistoryService.save(
                 accountId,
                 encounter,
-                simulatorResponse
+                simulatorResponse,
+                rewards
         );
 
         eventPublisher.publishEvent(new BattleFinishedEvent(

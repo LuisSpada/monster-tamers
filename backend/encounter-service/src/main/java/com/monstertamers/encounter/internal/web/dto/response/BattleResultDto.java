@@ -2,6 +2,7 @@ package com.monstertamers.encounter.internal.web.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.monstertamers.encounter.internal.domain.BattleOutcome;
+import com.monstertamers.encounter.internal.web.dto.response.rewards.BattleRewardsDto;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,7 @@ public record BattleResultDto(
         BattleOutcome outcome,
         int rounds,
         List<ParticipantDto> participants,
+        BattleRewardsDto rewards,
         List<EventDto> events
 ) {
 
