@@ -412,6 +412,7 @@ class BattleControllerTest {
                 BattleOutcome.victory,
                 3,
                 participants,
+                null,
                 List.of(
                         new BattleResultDto.EventDto(
                                 "event-1",

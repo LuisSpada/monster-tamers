@@ -119,11 +119,19 @@ export interface LevelUp {
   pointsGained: number;
 }
 
+export interface Egg {
+  id: string;
+  name: string;
+  monsterClass: MonsterClass;
+  talent: number;
+  avatarVariant: number;
+}
+
 export interface BattleRewards {
   xp: XpAward[];
   levelUps: LevelUp[];
   /** Newly hatched monster, if an egg was awarded. */
-  egg: Monster | null;
+  egg: Egg | null;
   finalBossDefeated: boolean;
 }
 

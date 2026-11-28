@@ -99,6 +99,9 @@ const backendBattleResult = {
       level: 1,
     },
   ],
+  rewards: {
+    egg: null,
+  },
   events: [
     {
       id: "event-1",

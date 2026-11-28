@@ -1,6 +1,7 @@
 package com.monstertamers.encounter.internal.domain;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -49,4 +50,16 @@ public class Battle {
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.JSON)
     private List<BattleParticipant> participants;
+
+    @Embedded
+    private BattleRewards rewards;
+
+    public BattleRewards getRewards() {
+
+        if (rewards == null) {
+            rewards = new BattleRewards();
+        }
+
+        return rewards;
+    }
 }

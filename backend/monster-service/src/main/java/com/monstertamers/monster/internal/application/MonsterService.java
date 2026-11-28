@@ -3,6 +3,7 @@ package com.monstertamers.monster.internal.application;
 import com.monstertamers.monster.internal.domain.Monster;
 import com.monstertamers.monster.internal.domain.MonsterSpecies;
 import com.monstertamers.monster.internal.error.MonsterErrorCode;
+import com.monstertamers.monster.internal.integration.dto.AddMonsterRequest;
 import com.monstertamers.monster.internal.persistence.MonsterRepository;
 import com.monstertamers.monster.internal.persistence.MonsterSpeciesRepository;
 import com.monstertamers.monster.internal.web.dto.response.MonsterDto;
@@ -128,6 +129,24 @@ public class MonsterService {
                 accountId,
                 starters.size()
         );
+    }
+
+    @Transactional
+    public MonsterDto addMonster(UUID accountId, AddMonsterRequest request) {
+
+        List<MonsterSpecies> speciesPool = monsterSpeciesRepository
+            .findAllByMonsterClass(request.monsterClass());
+
+        Monster monster = monsterGenerator.generateRandom(speciesPool);
+        monster.setAccountId(accountId);
+        monsterRepository.save(monster);
+
+        log.info(
+            "Account {} received monster {} ({})",
+            accountId, monster.getId(), monster.getSpecies().getName()
+        );
+
+        return monsterMapper.toDto(monster);
     }
 
     private void validateBattleMonsterIds(

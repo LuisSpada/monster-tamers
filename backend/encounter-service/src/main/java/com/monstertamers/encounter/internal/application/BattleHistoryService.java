@@ -3,6 +3,7 @@ package com.monstertamers.encounter.internal.application;
 import com.monstertamers.encounter.internal.domain.Battle;
 import com.monstertamers.encounter.internal.domain.BattleLog;
 import com.monstertamers.encounter.internal.domain.BattleLogEntry;
+import com.monstertamers.encounter.internal.domain.BattleRewards;
 import com.monstertamers.encounter.internal.domain.Encounter;
 import com.monstertamers.encounter.internal.error.EncounterErrorCode;
 import com.monstertamers.encounter.internal.integration.simulator.SimulatorBattleMapper;
@@ -34,10 +35,12 @@ public class BattleHistoryService {
     public BattleResultDto save(
             UUID accountId,
             Encounter encounter,
-            SimulatorBattleResponse response
+            SimulatorBattleResponse response,
+            BattleRewards rewards
     ) {
 
         Battle battle = simulatorBattleMapper.toBattle(accountId, encounter, response);
+        battle.setRewards(rewards);
         battleRepository.save(battle);
 
         BattleLog battleLog = simulatorBattleMapper.toBattleLog(battle, response);
